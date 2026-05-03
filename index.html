@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GL Reappraisal Pro — RO Kadapa</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ═══════ RESET & VARIABLES ═══════ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0B1E3D;--navy2:#102347;--navy3:#1A3566;
+  --gold:#C9971A;--gold-light:#F0C84A;--gold-pale:#FDF3D0;
+  --cream:#FAF7F0;--white:#FFFFFF;
+  --green:#1A7A4A;--green-bg:#E8F5EE;
+  --red:#B91C1C;--red-bg:#FEE2E2;
+  --amber:#B45309;--amber-bg:#FEF3C7;
+  --gray:#6B7280;--gray-light:#F3F4F6;
+  --border:#E2DDD5;--text:#1C1917;--text2:#57534E;
+  --shadow:0 2px 8px rgba(11,30,61,.10);
+  --radius:10px;--radius-lg:16px;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);font-size:13px;min-height:100vh}
+
+/* ═══════ TOPBAR ═══════ */
+.topbar{background:var(--navy);color:white;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-logo{width:34px;height:34px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.brand h1{font-size:14px;font-weight:600;color:white;letter-spacing:.2px}
+.brand p{font-size:10px;color:rgba(255,255,255,.55);margin-top:-1px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.pill{background:rgba(201,151,26,.18);color:var(--gold-light);border:1px solid rgba(201,151,26,.3);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:500}
+
+/* ═══════ NAV TABS ═══════ */
+.nav-tabs{background:var(--navy2);display:flex;padding:0 20px;overflow-x:auto;gap:0}
+.nav-tab{padding:9px 18px;color:rgba(255,255,255,.5);font-size:11px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;letter-spacing:.2px}
+.nav-tab:hover{color:rgba(255,255,255,.8)}
+.nav-tab.active{color:var(--gold-light);border-bottom-color:var(--gold)}
+
+/* ═══════ SCREENS ═══════ */
+.screen{display:none;padding:20px;max-width:1100px;margin:0 auto;animation:fadeUp .2s ease}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════ CARDS ═══════ */
+.card{background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;box-shadow:var(--shadow);margin-bottom:14px}
+.card-title{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title::before{content:'';width:3px;height:13px;background:var(--gold);border-radius:2px}
+
+/* ═══════ STATS ═══════ */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
+.stat-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+.stat-card .lbl{font-size:10px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.4px}
+.stat-card .num{font-size:26px;font-weight:700;margin-top:4px;font-family:'Courier New',monospace}
+
+/* ═══════ BUTTONS ═══════ */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--navy);color:white}.btn-primary:hover{background:var(--navy3)}
+.btn-gold{background:var(--gold);color:white}.btn-gold:hover{background:#A87D12}
+.btn-green{background:var(--green);color:white}
+.btn-red{background:var(--red);color:white}
+.btn-outline{background:transparent;color:var(--navy);border:1px solid var(--border)}.btn-outline:hover{background:var(--gray-light)}
+.btn-sm{padding:5px 12px;font-size:11px}
+
+/* ═══════ FORM ═══════ */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select,.form-group textarea{padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;color:var(--text);background:white;outline:none;transition:border-color .15s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--navy3);box-shadow:0 0 0 3px rgba(26,53,102,.07)}
+
+/* ═══════ TABLE ═══════ */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{background:var(--navy);color:rgba(255,255,255,.85);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;text-align:left}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+.tbl tr:hover td{background:#FAFAF8}
+.tbl tr.flagged td{background:#FFF5F5}
+
+/* ═══════ BADGES ═══════ */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700}
+.badge-ok{background:var(--green-bg);color:var(--green)}
+.badge-flag{background:var(--red-bg);color:var(--red)}
+.badge-warn{background:var(--amber-bg);color:var(--amber)}
+.badge-gray{background:var(--gray-light);color:var(--gray)}
+.badge-info{background:#EFF6FF;color:#1D4ED8}
+
+/* ═══════ PROGRESS ═══════ */
+.prog-wrap{margin:6px 0 14px}
+.prog-bar{height:6px;background:var(--gray-light);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .4s}
+.prog-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-top:3px}
+
+/* ═══════ UPLOAD ZONE ═══════ */
+.upload-zone{border:2px dashed var(--gold);border-radius:var(--radius-lg);padding:28px;text-align:center;background:var(--gold-pale);cursor:pointer;transition:all .2s}
+.upload-zone:hover{border-color:#A87D12;background:#FEF0B5}
+.upload-zone .uz-icon{font-size:32px;margin-bottom:8px}
+.upload-zone p{font-size:12px;color:var(--text2)}
+.upload-zone strong{color:var(--navy)}
+
+/* ═══════ ALERTS ═══════ */
+.alert{padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.alert-warn{background:var(--amber-bg);color:var(--amber);border:1px solid #FCD34D}
+.alert-ok{background:var(--green-bg);color:var(--green);border:1px solid #6EE7B7}
+.alert-info{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+.alert-err{background:var(--red-bg);color:var(--red);border:1px solid #FCA5A5}
+
+/* ═══════ WEIGHT ENTRY ═══════ */
+.wt-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:start}
+.wt-box{background:var(--gray-light);border-radius:var(--radius);padding:14px;border:1px solid var(--border)}
+.wt-box h4{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.wt-box.orig{border-left:3px solid var(--navy3)}
+.wt-box.reapp{border-left:3px solid var(--gold)}
+.diff-result{padding:10px 14px;border-radius:8px;margin-top:10px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px}
+.diff-ok{background:var(--green-bg);color:var(--green)}
+.diff-flag{background:var(--red-bg);color:var(--red)}
+.diff-warn{background:var(--amber-bg);color:var(--amber)}
+
+/* ═══════ TOGGLE ═══════ */
+.toggle-group{display:flex;flex-direction:column;gap:8px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--gray-light);border-radius:8px;border:1px solid var(--border)}
+.toggle-row span{font-size:12px;font-weight:500}
+.toggle-sw{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.toggle-sw button{padding:4px 14px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:white;color:var(--text2);transition:all .15s;font-family:inherit}
+.toggle-sw button.yes.active{background:var(--green);color:white}
+.toggle-sw button.no.active{background:var(--red);color:white}
+
+/* ═══════ AUTOCOPY ═══════ */
+.autocopy-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:6px 4px;min-width:80px}
+.autocopy-toggle{width:42px;height:23px;border-radius:12px;background:var(--green);cursor:pointer;position:relative;transition:background .2s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.autocopy-knob{width:17px;height:17px;border-radius:50%;background:white;position:absolute;top:3px;right:3px;transition:right .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.copied-indicator{display:none;margin-top:6px;padding:3px 8px;background:var(--green-bg);border-radius:5px;font-size:10px;font-weight:600;color:var(--green);text-align:center}
+
+/* ═══════ LOGIN ═══════ */
+#login-screen{min-height:100vh;background:var(--navy);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:white;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo .llg{width:64px;height:64px;background:var(--gold);border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:10px;box-shadow:0 4px 16px rgba(201,151,26,.4)}
+.login-logo h2{font-size:18px;font-weight:700;color:var(--navy)}
+.login-logo p{font-size:11px;color:var(--gray);margin-top:2px}
+.login-credit{text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.login-credit p{font-size:10px;color:var(--gray);line-height:1.6}
+.login-credit strong{color:var(--navy);font-weight:600}
+
+/* ═══════ FIREBASE CONFIG MODAL ═══════ */
+#config-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.config-card{background:white;border-radius:16px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.config-card h2{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.config-card p{font-size:12px;color:var(--text2);margin-bottom:16px}
+
+/* ═══════ CRED CARD ═══════ */
+.cred-card{background:var(--navy);border-radius:14px;padding:20px;max-width:320px;margin:0 auto;color:white}
+
+/* ═══════ PRINT STYLES ═══════ */
+@media print{
+  @page{size:A4 landscape;margin:8mm 10mm}
+  .topbar,.nav-tabs,.no-print{display:none!important}
+  .screen{display:none!important;padding:0}
+  #screen-report{display:block!important;padding:0;max-width:100%}
+  body{background:white}
+  .annexure-wrap{box-shadow:none!important}
+  .ann-table-wrap{overflow:visible!important}
+  .ann-main-table thead{display:table-header-group}
+  .ann-main-table tbody{display:table-row-group}
+  .ann-main-table td{min-height:16px;height:16px;font-size:6.5pt!important;padding:2px 3px!important}
+  .ann-main-table tr{page-break-inside:avoid}
+  .ann-main-table{table-layout:fixed;width:100%;font-size:6.5pt!important}
+  .ann-main-table th{font-size:7pt!important;padding:2px 3px!important}
+  .ann-outer-table td{padding:2px 4px!important;font-size:8.5pt!important}
+  .ann-title{font-size:10pt!important;margin-bottom:3px!important}
+  .ann-sub{font-size:8pt!important;margin:3px 0!important}
+  .sig-table{margin-top:8px!important}
+  .sig-line{margin-top:20px!important}
+}
+
+/* ═══════ ANNEXURE II ═══════ */
+.annexure-wrap{background:white;font-family:'Times New Roman',Times,serif;font-size:11pt;color:#000;padding:10px 0}
+.ann-outer-table{width:100%;border-collapse:collapse;border:1.5px solid #000}
+.ann-outer-table td,.ann-outer-table th{border:1px solid #000;padding:4px 6px;vertical-align:top}
+.ann-title{font-size:13pt;font-weight:bold;text-align:center;text-decoration:underline;margin-bottom:6px}
+.ann-sub{font-size:10.5pt;font-weight:bold;text-align:center;margin:6px 0;text-transform:uppercase}
+.ann-main-table{width:100%;border-collapse:collapse;font-size:8pt;font-family:'Times New Roman',Times,serif;table-layout:fixed}
+.ann-main-table th{background:#f0f0f0;border:1px solid #000;padding:3px 4px;text-align:center;font-weight:bold;vertical-align:middle;font-size:7.5pt}
+.ann-main-table td{border:1px solid #000;padding:3px 4px;vertical-align:middle;text-align:center;font-size:8pt}
+.ann-main-table td.left{text-align:left}
+.ann-flag-row td{background:#fff0f0}
+.sig-table{width:100%;border-collapse:collapse;margin-top:14px}
+.sig-table td{width:25%;text-align:center;padding:4px 8px;vertical-align:bottom;font-size:9pt}
+.sig-line{border-top:1px solid #000;margin:40px auto 4px;width:80%}
+
+/* ═══════ MISC ═══════ */
+.divider{height:1px;background:var(--border);margin:16px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.flex-1{flex:1}
+.loading{text-align:center;padding:40px;color:var(--gray);font-size:14px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.section-header h2{font-size:16px;font-weight:600;color:var(--navy)}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ FIREBASE CONFIG MODAL ═══════════════ -->
+<div id="config-modal" style="display:none">
+  <div class="config-card">
+    <h2>🔧 Firebase Setup (One-time)</h2>
+    <p>To enable real-time data sharing between Admin and Branch Officers, you need a free Firebase project. This takes 5 minutes and is done only once.</p>
+    <div class="alert alert-info" style="margin-bottom:16px">
+      ℹ️ <span>Go to <strong>console.firebase.google.com</strong> → Create project → Realtime Database → Copy your config below.</span>
+    </div>
+    <div class="form-grid" style="margin-bottom:14px">
+      <div class="form-group"><label>API Key</label><input id="cfg-apiKey" placeholder="AIzaSy..."></div>
+      <div class="form-group"><label>Database URL</label><input id="cfg-dbUrl" placeholder="https://your-project-default-rtdb.firebaseio.com"></div>
+      <div class="form-group"><label>Project ID</label><input id="cfg-projectId" placeholder="your-project-id"></div>
+      <div class="form-group"><label>App ID</label><input id="cfg-appId" placeholder="1:123456:web:abc..."></div>
+    </div>
+    <div class="alert alert-warn">⚠️ <span>In Firebase Console → Realtime Database → Rules, set both read and write to <strong>true</strong> for internal use.</span></div>
+    <div style="margin-top:14px;display:flex;gap:10px">
+      <button class="btn btn-gold" style="flex:1" onclick="saveConfig()">💾 Save & Connect</button>
+      <button class="btn btn-outline" onclick="useLocalMode()">Use Local Mode (single device)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="llg">🏅</div>
+      <h2>GL Reappraisal Pro</h2>
+      <p>Union Bank of India · Regional Office Kadapa</p>
+    </div>
+    <div id="login-err" class="alert alert-err" style="display:none">Invalid credentials. Contact RO Kadapa.</div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>User ID</label>
+      <input id="l-uid" placeholder="Enter User ID" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label>Password</label>
+      <input id="l-pwd" type="password" placeholder="Enter Password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:11px;font-size:13px" onclick="doLogin()">Login →</button>
+    <div class="login-credit">
+      <p>Created &amp; Developed by<br>
+        <strong>NUKAMREDDY VENKATESWARLU</strong><br>
+        Senior Manager · PF No. 669662<br>
+        Regional Office Kadapa · Union Bank of India</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN APP ═══════════════ -->
+<div id="main-app" style="display:none">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-logo">🏅</div>
+      <div>
+        <h1>GL Reappraisal Pro</h1>
+        <p id="topbar-sub">Gold Loan Surprise Reappraisal · RO Kadapa</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span id="online-status" class="pill"><span class="online-dot"></span>Live</span>
+      <span class="pill" id="topbar-role">—</span>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()" style="color:white;border-color:rgba(255,255,255,.3)">Logout</button>
+    </div>
+  </div>
+  <div class="nav-tabs" id="nav-tabs"></div>
+  <div id="app-screens"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  GLOBAL STATE
+// ═══════════════════════════════════════════════
+const ADMIN_ID = 'ROKA2026';
+const ADMIN_PW = 'RO@Kadapa#2026';
+let DB = null;
+let LOCAL_MODE = false;
+let CUR = {role:'',uid:'',branchCode:'',branchName:''};
+let _autocopy = true;
+let _toggles = {purity:'no',passcard:'yes',tally:'yes'};
+let _brAccounts = [];
+let _brIdx = 0;
+let _uploadedAccts = [];
+
+// ═══════════════════════════════════════════════
+//  FIREBASE CONFIG
+// ═══════════════════════════════════════════════
+function loadConfig(){
+  const cfg = JSON.parse(localStorage.getItem('gl-firebase-cfg')||'null');
+  return cfg;
+}
+
+function saveConfig(){
+  const cfg = {
+    apiKey: document.getElementById('cfg-apiKey').value.trim(),
+    databaseURL: document.getElementById('cfg-dbUrl').value.trim(),
+    projectId: document.getElementById('cfg-projectId').value.trim(),
+    appId: document.getElementById('cfg-appId').value.trim(),
+  };
+  if(!cfg.apiKey||!cfg.databaseURL){alert('API Key and Database URL are required.');return}
+  localStorage.setItem('gl-firebase-cfg', JSON.stringify(cfg));
+  document.getElementById('config-modal').style.display='none';
+  initFirebase(cfg);
+}
+
+function useLocalMode(){
+  LOCAL_MODE = true;
+  document.getElementById('config-modal').style.display='none';
+  document.getElementById('online-status').innerHTML='🔴 Local';
+}
+
+function initFirebase(cfg){
+  try{
+    const app = firebase.initializeApp(cfg);
+    DB = firebase.database();
+    document.getElementById('online-status').innerHTML='<span class="online-dot"></span>Live';
+    console.log('Firebase connected');
+  }catch(e){
+    console.error('Firebase init error',e);
+    LOCAL_MODE=true;
+    document.getElementById('online-status').innerHTML='⚠️ Local';
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  DB HELPERS
+// ═══════════════════════════════════════════════
+async function dbSet(path,val){
+  if(DB&&!LOCAL_MODE) return DB.ref(path).set(val);
+  const d=JSON.parse(localStorage.getItem('gl-db')||'{}');
+  setPath(d,path,val);
+  localStorage.setItem('gl-db',JSON.stringify(d));
+}
+async function dbGet(path){
+  if(DB&&!LOCAL_MODE){const snap=await DB.ref(path).get();return snap.exists()?snap.val():null}
+  const d=JSON.parse(localStorage.getItem('gl-db')||'{}');
+  return getPath(d,path);
+}
+async function dbRemove(path){
+  if(DB&&!LOCAL_MODE) return DB.ref(path).remove();
+  const d=JSON.parse(localStorage.getItem('gl-db')||'{}');
+  removePath(d,path);
+  localStorage.setItem('gl-db',JSON.stringify(d));
+}
+function dbListen(path,cb){
+  if(DB&&!LOCAL_MODE){DB.ref(path).on('value',snap=>cb(snap.val()));return}
+  cb(getPath(JSON.parse(localStorage.getItem('gl-db')||'{}'),path));
+}
+function setPath(obj,path,val){const k=path.split('/').filter(Boolean);let c=obj;for(let i=0;i<k.length-1;i++){if(!c[k[i]])c[k[i]]={};c=c[k[i]]}c[k[k.length-1]]=val}
+function getPath(obj,path){const k=path.split('/').filter(Boolean);let c=obj;for(const p of k){if(!c||typeof c!=='object')return null;c=c[p]}return c??null}
+function removePath(obj,path){const k=path.split('/').filter(Boolean);let c=obj;for(let i=0;i<k.length-1;i++){if(!c[k[i]])return;c=c[k[i]]}delete c[k[k.length-1]];localStorage.setItem('gl-db',JSON.stringify(obj))}
+
+// ═══════════════════════════════════════════════
+//  LOGIN / LOGOUT
+// ═══════════════════════════════════════════════
+async function doLogin(){
+  const uid=document.getElementById('l-uid').value.trim();
+  const pwd=document.getElementById('l-pwd').value.trim();
+  const err=document.getElementById('login-err');
+  err.style.display='none';
+  if(!uid||!pwd){err.style.display='flex';err.textContent='Please enter User ID and Password.';return}
+  if(uid===ADMIN_ID&&pwd===ADMIN_PW){
+    CUR={role:'admin',uid,branchCode:'',branchName:'RO Kadapa'};
+    localStorage.setItem('gl-session',JSON.stringify(CUR));
+    showApp();return;
+  }
+  const creds=await dbGet('gl-creds')||{};
+  const c=creds[uid];
+  if(c&&c.password===pwd&&c.active){
+    CUR={role:'branch',uid,branchCode:c.branchCode,branchName:c.branchName};
+    localStorage.setItem('gl-session',JSON.stringify(CUR));
+    showApp();return;
+  }
+  err.style.display='flex';err.textContent='Invalid credentials. Contact RO Kadapa.';
+}
+
+function doLogout(){
+  localStorage.removeItem('gl-session');
+  CUR={role:'',uid:'',branchCode:'',branchName:''};
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('l-uid').value='';
+  document.getElementById('l-pwd').value='';
+}
+
+// ═══════════════════════════════════════════════
+//  APP SHELL
+// ═══════════════════════════════════════════════
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('main-app').style.display='block';
+  const role=CUR.role==='admin'?'RO Admin':'Branch Officer';
+  document.getElementById('topbar-role').textContent=role;
+  document.getElementById('topbar-sub').textContent=CUR.role==='admin'
+    ?'Regional Office Kadapa — Administrator'
+    :'Branch: '+CUR.branchName+' ('+CUR.branchCode+')';
+  CUR.role==='admin'?buildAdminApp():buildBranchApp();
+}
+
+function buildTabs(tabs){
+  document.getElementById('nav-tabs').innerHTML=tabs.map((t,i)=>
+    `<div class="nav-tab ${i===0?'active':''}" onclick="showTab('${t.id}',this)">${t.label}</div>`).join('');
+}
+function showTab(id,el){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const sc=document.getElementById(id);if(sc)sc.classList.add('active');
+}
+function buildScreens(ids){
+  document.getElementById('app-screens').innerHTML=ids.map((id,i)=>
+    `<div id="${id}" class="screen ${i===0?'active':''}"></div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  ████████  ADMIN APP  ████████
+// ═══════════════════════════════════════════════
+function buildAdminApp(){
+  buildTabs([
+    {id:'s-dashboard',label:'📊 Dashboard'},
+    {id:'s-upload',label:'📂 Upload Data'},
+    {id:'s-branches',label:'🏦 Branches'},
+    {id:'s-creds',label:'🔑 Credentials'},
+    {id:'s-report',label:'📄 Annexure II'},
+  ]);
+  buildScreens(['s-dashboard','s-upload','s-branches','s-creds','s-report']);
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>{
+    const ids=['s-dashboard','s-upload','s-branches','s-creds','s-report'];
+    t.addEventListener('click',()=>{
+      if(ids[i]==='s-dashboard')renderDashboard();
+      if(ids[i]==='s-branches')renderBranches();
+      if(ids[i]==='s-creds')renderCreds();
+      if(ids[i]==='s-report')renderAdminReport();
+    });
+  });
+  renderDashboard();
+  renderUpload();
+  renderBranches();
+  renderCreds();
+}
+
+// ── DASHBOARD ──
+async function renderDashboard(){
+  const el=document.getElementById('s-dashboard');
+  if(!el)return;
+  el.innerHTML=`<div class="loading">⟳ Loading live data...</div>`;
+  const branches=await dbGet('gl-branches')||{};
+  const codes=Object.keys(branches);
+  if(!codes.length){
+    el.innerHTML=`<div class="alert alert-warn">⚠️ No branch data uploaded yet. Go to <b>Upload Data</b> tab.</div>`;return;
+  }
+  let totalBr=codes.length,doneBr=0,partBr=0,notBr=0;
+  let totalAcc=0,verAcc=0,flagAcc=0,pendAcc=0;
+  const rows=[];
+  for(const code of codes){
+    const b=branches[code];
+    const accsObj=await dbGet('gl-accounts/'+code)||{};
+    const accs=Object.values(accsObj);
+    const total=accs.length;
+    const done=accs.filter(a=>a.status==='ok').length;
+    const flag=accs.filter(a=>a.status==='flagged').length;
+    const notv=accs.filter(a=>a.status==='not_verified').length;
+    const pend=accs.filter(a=>a.status==='pending').length;
+    const pct=total>0?Math.round((done+flag+notv)/total*100):0;
+    totalAcc+=total;verAcc+=done;flagAcc+=flag;pendAcc+=pend;
+    const st=pct===100?'complete':pct>0?'partial':'not_started';
+    if(st==='complete')doneBr++;else if(st==='partial')partBr++;else notBr++;
+    rows.push({b,code,total,done,flag,notv,pend,pct,st});
+  }
+  el.innerHTML=`
+    <div class="section-header"><h2>RO Kadapa — Branch Dashboard</h2>
+      <button class="btn btn-primary btn-sm" onclick="renderDashboard()">⟳ Refresh</button></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="lbl">Total Branches</div><div class="num" style="color:var(--navy3)">${totalBr}</div></div>
+      <div class="stat-card"><div class="lbl">Completed</div><div class="num" style="color:var(--green)">${doneBr}</div></div>
+      <div class="stat-card"><div class="lbl">In Progress</div><div class="num" style="color:var(--amber)">${partBr}</div></div>
+      <div class="stat-card"><div class="lbl">Not Started</div><div class="num" style="color:var(--red)">${notBr}</div></div>
+      <div class="stat-card"><div class="lbl">Total Accounts</div><div class="num" style="color:var(--navy3)">${totalAcc}</div></div>
+      <div class="stat-card"><div class="lbl">Verified OK</div><div class="num" style="color:var(--green)">${verAcc}</div></div>
+      <div class="stat-card"><div class="lbl">Flagged</div><div class="num" style="color:var(--red)">${flagAcc}</div></div>
+      <div class="stat-card"><div class="lbl">Pending</div><div class="num" style="color:var(--amber)">${pendAcc}</div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" style="width:${totalBr>0?Math.round(doneBr/totalBr*100):0}%;background:var(--green)"></div></div>
+      <div class="prog-label"><span>Branches Completed</span><span>${totalBr>0?Math.round(doneBr/totalBr*100):0}%</span></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead><tr>
+          <th>Branch Name</th><th>Code</th><th>Quarter</th>
+          <th>Total</th><th>Verified</th><th>Flagged</th><th>Pending</th>
+          <th>Progress</th><th>Status</th>
+        </tr></thead>
+        <tbody>${rows.map(r=>`
+          <tr>
+            <td><b>${r.b.name||r.code}</b></td>
+            <td class="text-mono" style="font-family:monospace">${r.code}</td>
+            <td style="font-size:11px">${r.b.quarter||'—'}</td>
+            <td>${r.total}</td>
+            <td style="color:var(--green);font-weight:600">${r.done}</td>
+            <td style="color:var(--red);font-weight:600">${r.flag}</td>
+            <td style="color:var(--amber);font-weight:600">${r.pend}</td>
+            <td style="min-width:100px">
+              <div style="display:flex;align-items:center;gap:6px">
+                <div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:${r.pct}%;background:${r.pct===100?'var(--green)':r.pct>0?'var(--amber)':'var(--red)'}"></div></div>
+                <span style="font-size:11px;font-weight:700;width:32px">${r.pct}%</span>
+              </div>
+            </td>
+            <td>${r.st==='complete'?'<span class="badge badge-ok">✓ Complete</span>':r.st==='partial'?'<span class="badge badge-warn">⟳ In Progress</span>':'<span class="badge badge-gray">Not Started</span>'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ── UPLOAD ──
+function renderUpload(){
+  const el=document.getElementById('s-upload');if(!el)return;
+  el.innerHTML=`
+    <div class="section-header"><h2>Upload Branch Data</h2></div>
+    <div class="alert alert-info">ℹ️ Upload one Excel file per branch. Required columns: <b>Loan Account No.</b> and <b>Name of Borrower</b>. Optional: <b>Gross Wt</b>, <b>Net Wt</b> for original appraisal data.</div>
+    <div class="card">
+      <div class="card-title">Branch & Session Details</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Branch Name *</label><input id="up-bname" placeholder="e.g. Mydukur Branch"></div>
+        <div class="form-group"><label>Branch Code *</label><input id="up-bcode" placeholder="e.g. 10401"></div>
+        <div class="form-group"><label>Regional Office</label><input id="up-ro" value="Kadapa"></div>
+        <div class="form-group"><label>Quarter</label>
+          <select id="up-quarter">
+            <option>January-March 2026</option><option>April-June 2026</option>
+            <option>July-September 2026</option><option>October-December 2026</option>
+            <option>January-March 2027</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Ref. No.</label><input id="up-refno" placeholder="Branch reference no."></div>
+        <div class="form-group"><label>Date of Visit</label><input id="up-date" type="date"></div>
+        <div class="form-group"><label>Scale Expiry Date</label><input id="up-scale" type="date"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Import Excel File</div>
+      <div class="upload-zone" onclick="document.getElementById('up-file').click()">
+        <div class="uz-icon">📂</div>
+        <p><strong>Click to select Excel file</strong></p>
+        <p style="margin-top:4px">.xlsx / .xls formats supported</p>
+        <input id="up-file" type="file" accept=".xlsx,.xls" style="display:none" onchange="handleExcelUpload(this)">
+      </div>
+      <div id="up-import-msg" style="margin-top:10px"></div>
+      <div class="divider"></div>
+      <div class="row" style="margin-bottom:10px">
+        <div class="form-group flex-1"><label>Manual — Account No.</label><input id="up-macno" placeholder="Loan Account No."></div>
+        <div class="form-group flex-1"><label>Manual — Borrower Name</label><input id="up-mbname" placeholder="Name of Borrower"></div>
+        <button class="btn btn-outline btn-sm" style="margin-top:18px" onclick="addManualAccount()">+ Add</button>
+      </div>
+      <div id="up-preview" style="margin-top:6px"></div>
+    </div>
+    <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;margin-top:4px" onclick="saveBranchUpload()">💾 Save Branch Data to Database</button>
+    <div id="up-save-msg" style="margin-top:10px"></div>`;
+  document.getElementById('up-date').value=new Date().toISOString().split('T')[0];
+}
+
+function handleExcelUpload(inp){
+  const file=inp.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'binary'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!rows.length){showMsg('up-import-msg','No data found','warn');return}
+      const keys=Object.keys(rows[0]);
+      const fc=cs=>keys.find(k=>cs.some(c=>k.toLowerCase().includes(c.toLowerCase())));
+      const acCol=fc(['loan account','account no','acc no','loan no']);
+      const bnCol=fc(['borrower','name of','customer name','name']);
+      const ogCol=fc(['gross wt','gross weight','orig gross']);
+      const onCol=fc(['net wt','net weight','orig net']);
+      if(!acCol&&!bnCol){showMsg('up-import-msg','Cannot detect columns. Headers found: '+keys.join(', '),'warn');return}
+      _uploadedAccts=rows.map((r,i)=>({
+        sl:i+1,acno:String(r[acCol]||'').trim(),bname:String(r[bnCol]||'').trim(),
+        og:ogCol&&r[ogCol]!==''?parseFloat(r[ogCol])||'':'',
+        on_:onCol&&r[onCol]!==''?parseFloat(r[onCol])||'':'',
+        rg:'',rn:'',purity:'NO',purity_detail:'',passcard:'YES',tally:'YES',
+        appraiser2:'',action:'',status:'pending',not_verified_reason:''
+      })).filter(a=>a.acno||a.bname);
+      showMsg('up-import-msg','✓ '+_uploadedAccts.length+' accounts loaded from '+file.name,'ok');
+      renderUploadPreview();
+    }catch(err){showMsg('up-import-msg','Error: '+err.message,'warn')}
+  };
+  reader.readAsBinaryString(file);
+}
+
+function addManualAccount(){
+  const acno=document.getElementById('up-macno').value.trim();
+  const bname=document.getElementById('up-mbname').value.trim();
+  if(!acno&&!bname){alert('Enter at least one field.');return}
+  _uploadedAccts.push({sl:_uploadedAccts.length+1,acno,bname,og:'',on_:'',rg:'',rn:'',
+    purity:'NO',purity_detail:'',passcard:'YES',tally:'YES',appraiser2:'',action:'',
+    status:'pending',not_verified_reason:''});
+  document.getElementById('up-macno').value='';
+  document.getElementById('up-mbname').value='';
+  renderUploadPreview();
+}
+
+function renderUploadPreview(){
+  const el=document.getElementById('up-preview');
+  if(!_uploadedAccts.length){el.innerHTML='';return}
+  const show=_uploadedAccts.slice(0,8);
+  el.innerHTML=`<p style="font-size:11px;color:var(--text2);margin-bottom:6px"><b>${_uploadedAccts.length}</b> accounts loaded — preview (first 8):</p>
+    <table class="tbl" style="font-size:11px"><thead><tr><th>Sl</th><th>Account No.</th><th>Borrower</th></tr></thead>
+    <tbody>${show.map(a=>`<tr><td>${a.sl}</td><td style="font-family:monospace">${a.acno||'—'}</td><td>${a.bname||'—'}</td></tr>`).join('')}</tbody></table>
+    ${_uploadedAccts.length>8?`<p style="font-size:10px;color:var(--gray);margin-top:4px">...and ${_uploadedAccts.length-8} more</p>`:''}`;
+}
+
+async function saveBranchUpload(){
+  const name=document.getElementById('up-bname').value.trim();
+  const code=document.getElementById('up-bcode').value.trim();
+  if(!name||!code){alert('Branch Name and Branch Code are required.');return}
+  if(!_uploadedAccts.length){alert('Please upload/add accounts first.');return}
+  showMsg('up-save-msg','Saving to database...','info');
+  const branchData={name,code,
+    ro:document.getElementById('up-ro').value,
+    quarter:document.getElementById('up-quarter').value,
+    refno:document.getElementById('up-refno').value,
+    date:document.getElementById('up-date').value,
+    scale:document.getElementById('up-scale').value,
+  };
+  await dbSet('gl-branches/'+code,branchData);
+  // Save accounts as object keyed by sl
+  const accsObj={};
+  _uploadedAccts.forEach(a=>{accsObj[a.sl]=a});
+  await dbSet('gl-accounts/'+code,accsObj);
+  _uploadedAccts=[];
+  document.getElementById('up-file').value='';
+  renderUploadPreview();
+  showMsg('up-save-msg','✓ '+name+' ('+code+') uploaded — '+Object.keys(accsObj).length+' accounts saved to database','ok');
+}
+
+// ── BRANCHES ──
+async function renderBranches(){
+  const el=document.getElementById('s-branches');if(!el)return;
+  el.innerHTML=`<div class="loading">Loading...</div>`;
+  const branches=await dbGet('gl-branches')||{};
+  const codes=Object.keys(branches);
+  if(!codes.length){el.innerHTML=`<div class="section-header"><h2>Manage Branches</h2></div><div class="alert alert-warn">No branches uploaded yet.</div>`;return}
+  el.innerHTML=`
+    <div class="section-header"><h2>Manage Branches (${codes.length})</h2></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th>Branch Name</th><th>Code</th><th>Quarter</th><th>Date</th><th>RO</th><th>Actions</th></tr></thead>
+        <tbody>${codes.map(c=>{const b=branches[c];return`
+          <tr>
+            <td><b>${b.name}</b></td>
+            <td style="font-family:monospace">${c}</td>
+            <td style="font-size:11px">${b.quarter||'—'}</td>
+            <td style="font-size:11px">${b.date||'—'}</td>
+            <td style="font-size:11px">${b.ro||'Kadapa'}</td>
+            <td><button class="btn btn-red btn-sm" onclick="deleteBranch('${c}','${b.name}')">Delete</button></td>
+          </tr>`}).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+async function deleteBranch(code,name){
+  if(!confirm('Delete branch '+name+' ('+code+') and ALL its account data? This cannot be undone.'))return;
+  await dbRemove('gl-branches/'+code);
+  await dbRemove('gl-accounts/'+code);
+  renderBranches();
+}
+
+// ── CREDENTIALS ──
+async function renderCreds(){
+  const el=document.getElementById('s-creds');if(!el)return;
+  const creds=await dbGet('gl-creds')||{};
+  const branches=await dbGet('gl-branches')||{};
+  const brCodes=Object.keys(branches);
+  el.innerHTML=`
+    <div class="section-header"><h2>Branch Officer Credentials</h2></div>
+    <div class="alert alert-info">ℹ️ Create a User ID and Password for each branch officer. <b>Share credentials only at the time of branch visit.</b> Each officer can access only their assigned branch.</div>
+    <div class="card">
+      <div class="card-title">Create New Credential</div>
+      ${!brCodes.length?'<div class="alert alert-warn">Upload branch data first before creating credentials.</div>':`
+      <div class="form-grid" style="margin-bottom:12px">
+        <div class="form-group"><label>Assign Branch *</label>
+          <select id="cr-branch">
+            ${brCodes.map(c=>`<option value="${c}">${branches[c].name} (${c})</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label>User ID *</label><input id="cr-uid" placeholder="e.g. BM10401"></div>
+        <div class="form-group"><label>Password *</label><input id="cr-pwd" placeholder="e.g. Mydukur@2026"></div>
+        <div class="form-group" style="justify-content:flex-end;padding-top:18px">
+          <button class="btn btn-gold" onclick="createCred()">+ Create Credential</button>
+        </div>
+      </div>`}
+    </div>
+    <div class="card">
+      <div class="card-title">Active Credentials (${Object.keys(creds).length})</div>
+      ${!Object.keys(creds).length?'<p style="font-size:12px;color:var(--gray)">No credentials created yet.</p>':`
+      <table class="tbl">
+        <thead><tr><th>User ID</th><th>Branch</th><th>Code</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>${Object.entries(creds).map(([uid,c])=>`
+          <tr>
+            <td style="font-family:monospace;font-weight:600">${uid}</td>
+            <td>${c.branchName}</td>
+            <td style="font-family:monospace">${c.branchCode}</td>
+            <td>${c.active?'<span class="badge badge-ok">Active</span>':'<span class="badge badge-gray">Disabled</span>'}</td>
+            <td style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-outline btn-sm" onclick="toggleCred('${uid}',${!c.active})">${c.active?'Disable':'Enable'}</button>
+              <button class="btn btn-red btn-sm" onclick="deleteCred('${uid}')">Delete</button>
+              <button class="btn btn-primary btn-sm" onclick="showCredCard('${uid}')">Show Card</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>
+    <div id="cred-card-wrap" style="margin-top:12px"></div>`;
+}
+
+async function createCred(){
+  const brCode=document.getElementById('cr-branch').value;
+  const uid=document.getElementById('cr-uid').value.trim();
+  const pwd=document.getElementById('cr-pwd').value.trim();
+  if(!uid||!pwd){alert('User ID and Password are required.');return}
+  if(uid===ADMIN_ID){alert('This User ID is reserved.');return}
+  const branches=await dbGet('gl-branches')||{};
+  await dbSet('gl-creds/'+uid,{password:pwd,branchCode:brCode,branchName:branches[brCode]?.name||brCode,active:true});
+  renderCreds();
+}
+
+async function toggleCred(uid,active){
+  await dbSet('gl-creds/'+uid+'/active',active);
+  renderCreds();
+}
+
+async function deleteCred(uid){
+  if(!confirm('Delete credential for '+uid+'?'))return;
+  await dbRemove('gl-creds/'+uid);
+  renderCreds();
+}
+
+async function showCredCard(uid){
+  const creds=await dbGet('gl-creds')||{};
+  const c=creds[uid];if(!c)return;
+  const wrap=document.getElementById('cred-card-wrap');
+  wrap.innerHTML=`
+    <div class="cred-card">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:24px">🏅</div>
+        <div style="font-size:14px;font-weight:700;margin-top:4px">GL Reappraisal Pro</div>
+        <div style="font-size:10px;opacity:.6">Union Bank of India · RO Kadapa</div>
+      </div>
+      <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px;margin-bottom:10px">
+        <div style="font-size:10px;opacity:.6;margin-bottom:2px">Branch</div>
+        <div style="font-size:14px;font-weight:700">${c.branchName}</div>
+        <div style="font-size:11px;opacity:.7">Code: ${c.branchCode}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div style="background:rgba(201,151,26,.2);border-radius:8px;padding:10px;border:1px solid rgba(201,151,26,.3)">
+          <div style="font-size:9px;color:var(--gold-light);font-weight:600;margin-bottom:3px">USER ID</div>
+          <div style="font-size:16px;font-weight:700;font-family:monospace;color:white">${uid}</div>
+        </div>
+        <div style="background:rgba(201,151,26,.2);border-radius:8px;padding:10px;border:1px solid rgba(201,151,26,.3)">
+          <div style="font-size:9px;color:var(--gold-light);font-weight:600;margin-bottom:3px">PASSWORD</div>
+          <div style="font-size:16px;font-weight:700;font-family:monospace;color:white">${c.password}</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:9px;opacity:.4">Share only at time of branch visit · For internal use only</div>
+    </div>
+    <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="document.getElementById('cred-card-wrap').innerHTML=''">Close Card</button>`;
+}
+
+// ── ADMIN REPORT ──
+async function renderAdminReport(){
+  const el=document.getElementById('s-report');if(!el)return;
+  el.innerHTML=`<div class="loading">Loading branches...</div>`;
+  const branches=await dbGet('gl-branches')||{};
+  const codes=Object.keys(branches);
+  if(!codes.length){el.innerHTML=`<div class="alert alert-warn">No branches available.</div>`;return}
+  el.innerHTML=`
+    <div class="section-header"><h2>Generate Annexure II</h2></div>
+    <div class="card">
+      <div class="card-title">Select Branch</div>
+      <div class="row">
+        <div class="form-group flex-1"><label>Branch</label>
+          <select id="rpt-br-sel">
+            ${codes.map(c=>`<option value="${c}">${branches[c].name} (${c})</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn btn-primary" style="margin-top:18px" onclick="loadBranchReport()">Load Report</button>
+      </div>
+    </div>
+    <div id="rpt-sig-panel" style="display:none" class="card">
+      <div class="card-title">Signatory Details</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+        <div><p style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px">Branch Official</p>
+          <div class="form-group"><label>Name</label><input id="sg-bo-name" placeholder="Name"></div>
+          <div class="form-group"><label>PF No.</label><input id="sg-bo-pf" placeholder="PF No."></div></div>
+        <div><p style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px">Branch in Charge</p>
+          <div class="form-group"><label>Name</label><input id="sg-bic-name" placeholder="Name"></div>
+          <div class="form-group"><label>PF No.</label><input id="sg-bic-pf" placeholder="PF No."></div></div>
+        <div><p style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px">Gold Appraiser</p>
+          <div class="form-group"><label>Name</label><input id="sg-app-name" placeholder="Appraiser Name"></div></div>
+        <div><p style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px">Nominated Officer</p>
+          <div class="form-group"><label>Name</label><input id="sg-nom-name" placeholder="Name"></div>
+          <div class="form-group"><label>PF No.</label><input id="sg-nom-pf" placeholder="PF No."></div></div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print Annexure II (Landscape)</button>
+        <button class="btn btn-outline" onclick="refreshAndPrint()">🔄 Refresh & Print</button>
+      </div>
+    </div>
+    <div id="screen-report" class="screen active" style="padding:0"></div>`;
+}
+
+async function loadBranchReport(){
+  const code=document.getElementById('rpt-br-sel').value;
+  const branches=await dbGet('gl-branches')||{};
+  const b=branches[code];
+  const accsObj=await dbGet('gl-accounts/'+code)||{};
+  const accs=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
+  document.getElementById('rpt-sig-panel').style.display='block';
+  if(b.appraiser) document.getElementById('sg-app-name').value=b.appraiser||'';
+  buildAnnexureII(b,accs,'screen-report');
+}
+
+async function refreshAndPrint(){
+  await loadBranchReport();
+  setTimeout(()=>window.print(),500);
+}
+
+// ═══════════════════════════════════════════════
+//  ████████  BRANCH APP  ████████
+// ═══════════════════════════════════════════════
+function buildBranchApp(){
+  buildTabs([
+    {id:'b-accounts',label:'📋 Accounts'},
+    {id:'b-entry',label:'✏️ Entry Form'},
+    {id:'b-report',label:'📄 Report'},
+  ]);
+  buildScreens(['b-accounts','b-entry','b-report']);
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>{
+    if(i===0)t.addEventListener('click',renderBranchAccounts);
+    if(i===2)t.addEventListener('click',renderBranchReport);
+  });
+  loadBranchAccounts();
+}
+
+async function loadBranchAccounts(){
+  const accsObj=await dbGet('gl-accounts/'+CUR.branchCode)||{};
+  _brAccounts=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
+  renderBranchAccounts();
+}
+
+function renderBranchAccounts(){
+  const el=document.getElementById('b-accounts');if(!el)return;
+  if(!_brAccounts.length){
+    el.innerHTML=`<div class="alert alert-warn">⚠️ No accounts loaded for your branch. Contact RO Kadapa to upload your branch data.</div>`;return;
+  }
+  const done=_brAccounts.filter(a=>a.status==='ok').length;
+  const flag=_brAccounts.filter(a=>a.status==='flagged').length;
+  const notv=_brAccounts.filter(a=>a.status==='not_verified').length;
+  const pend=_brAccounts.filter(a=>a.status==='pending').length;
+  const pct=_brAccounts.length>0?Math.round((done+flag+notv)/_brAccounts.length*100):0;
+  el.innerHTML=`
+    <div class="section-header"><h2>${CUR.branchName} — Accounts</h2>
+      <button class="btn btn-outline btn-sm" onclick="loadBranchAccounts()">⟳ Refresh</button></div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="lbl">Total</div><div class="num" style="color:var(--navy3)">${_brAccounts.length}</div></div>
+      <div class="stat-card"><div class="lbl">Verified</div><div class="num" style="color:var(--green)">${done}</div></div>
+      <div class="stat-card"><div class="lbl">Flagged</div><div class="num" style="color:var(--red)">${flag}</div></div>
+      <div class="stat-card"><div class="lbl">Pending</div><div class="num" style="color:var(--amber)">${pend}</div></div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${flag>0?'var(--amber)':'var(--green)'}"></div></div>
+      <div class="prog-label"><span>Completion Progress</span><span>${pct}%</span></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th>Sl</th><th>Account No.</th><th>Borrower Name</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>${_brAccounts.map((a,i)=>`
+          <tr class="${a.status==='flagged'?'flagged':''}">
+            <td>${a.sl}</td>
+            <td style="font-family:monospace;font-size:11px">${a.acno||'—'}</td>
+            <td>${a.bname||'—'}</td>
+            <td>${a.status==='ok'?'<span class="badge badge-ok">✓ Verified</span>':a.status==='flagged'?'<span class="badge badge-flag">⚠ Flagged</span>':a.status==='not_verified'?'<span class="badge badge-warn">✗ N/V</span>':'<span class="badge badge-gray">Pending</span>'}</td>
+            <td><button class="btn btn-outline btn-sm" onclick="openEntryAt(${i})">Edit</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function openEntryAt(idx){
+  _brIdx=idx;
+  document.querySelectorAll('.nav-tab')[1].click();
+  setTimeout(()=>renderEntryFor(idx),100);
+}
+
+function renderBranchEntry(){
+  const el=document.getElementById('b-entry');if(!el)return;
+  if(!_brAccounts.length){
+    el.innerHTML=`<div class="alert alert-warn">No accounts loaded. Contact RO Kadapa.</div>`;return;
+  }
+  renderEntryFor(_brIdx);
+}
+
+function renderEntryFor(idx){
+  _brIdx=idx;
+  const el=document.getElementById('b-entry');if(!el)return;
+  const a=_brAccounts[idx];
+  el.innerHTML=`
+    <!-- Account header card -->
+    <div style="background:var(--navy);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="color:white;font-weight:600;font-size:15px">${a.bname||'(No Name)'}</div>
+        <div style="color:rgba(255,255,255,.55);font-size:11px;font-family:monospace;margin-top:2px">${a.acno||'No Account No.'}</div>
+      </div>
+      <div>${a.status==='ok'?'<span class="badge badge-ok">✓ Verified</span>':a.status==='flagged'?'<span class="badge badge-flag">⚠ Flagged</span>':'<span class="badge badge-gray">Pending</span>'}</div>
+    </div>
+
+    <!-- Navigation -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <button class="btn btn-outline btn-sm" onclick="renderEntryFor(${idx-1})" ${idx===0?'disabled':''}>← Prev</button>
+      <div style="text-align:center">
+        <select class="form-group" style="padding:5px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px" onchange="renderEntryFor(parseInt(this.value))">
+          ${_brAccounts.map((ac,i)=>`<option value="${i}" ${i===idx?'selected':''}>#${ac.sl} ${ac.bname||''} ${ac.status==='ok'?'✓':ac.status==='flagged'?'⚠':''}</option>`).join('')}
+        </select>
+        <div style="font-size:10px;color:var(--text2);margin-top:2px">${idx+1} of ${_brAccounts.length}</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="renderEntryFor(${idx+1})" ${idx===_brAccounts.length-1?'disabled':''}>Next →</button>
+    </div>
+
+    <!-- Weights -->
+    <div class="card">
+      <div class="card-title">Weight Details</div>
+      <div class="wt-grid">
+        <div class="wt-box orig">
+          <h4>Original Appraisal (at sanction)</h4>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Gross Weight (gm)</label>
+            <input type="number" step="0.001" id="e-og" placeholder="0.000" value="${a.og!==''&&a.og!==null&&a.og!==undefined?a.og:''}" oninput="calcWtDiff();tryAutoCopy()">
+          </div>
+          <div class="form-group">
+            <label>Net Weight (gm)</label>
+            <input type="number" step="0.001" id="e-on" placeholder="0.000" value="${a.on_!==''&&a.on_!==null&&a.on_!==undefined?a.on_:''}" oninput="calcWtDiff();tryAutoCopy()">
+          </div>
+        </div>
+
+        <!-- Auto-copy middle -->
+        <div class="autocopy-panel">
+          <div style="text-align:center">
+            <div style="font-size:9px;font-weight:700;color:var(--text2);margin-bottom:4px;text-transform:uppercase">Auto Copy</div>
+            <div id="ac-tog" class="autocopy-toggle" onclick="toggleACopy()" title="Auto-fill reappraisal weights from sanction when no discrepancy">
+              <div id="ac-knob" class="autocopy-knob"></div>
+            </div>
+            <div id="ac-lbl" style="font-size:9px;font-weight:700;color:var(--green);margin-top:3px">ON</div>
+          </div>
+          <button onclick="manualCopyWt()" class="btn btn-primary btn-sm" title="Copy sanction → reappraisal" style="padding:6px 10px;font-size:11px;text-align:center;width:100%">Copy →</button>
+          <div style="font-size:18px;color:var(--border)">⇒</div>
+        </div>
+
+        <div class="wt-box reapp">
+          <h4>Reappraisal (Today)</h4>
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Gross Weight (gm)</label>
+            <input type="number" step="0.001" id="e-rg" placeholder="0.000" value="${a.rg!==''&&a.rg!==null&&a.rg!==undefined?a.rg:''}" oninput="clearACTint('e-rg');calcWtDiff()">
+          </div>
+          <div class="form-group">
+            <label>Net Weight (gm)</label>
+            <input type="number" step="0.001" id="e-rn" placeholder="0.000" value="${a.rn!==''&&a.rn!==null&&a.rn!==undefined?a.rn:''}" oninput="clearACTint('e-rn');calcWtDiff()">
+          </div>
+          <div id="copied-indicator" class="copied-indicator" style="${a.rg!==''&&a.rg===a.og?'display:block':'display:none'}">✓ Auto-filled from sanction</div>
+        </div>
+      </div>
+      <div id="wt-diff-result" style="display:none"></div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="card">
+      <div class="card-title">Compliance Checklist</div>
+      <div class="toggle-group">
+        <div class="toggle-row">
+          <span>Difference in Purity?</span>
+          <div class="toggle-sw">
+            <button class="yes ${a.purity==='YES'?'active':''}" id="p-yes" onclick="setToggle('purity','yes')">YES</button>
+            <button class="no ${a.purity!=='YES'?'active':''}" id="p-no" onclick="setToggle('purity','no')">NO</button>
+          </div>
+        </div>
+        <div id="purity-detail-row" style="display:${a.purity==='YES'?'block':'none'}">
+          <div class="form-group" style="margin:6px 0"><label>Purity Difference Details</label>
+            <input id="e-pdetail" placeholder="e.g. Original 22K, found 20K" value="${a.purity_detail||''}"></div>
+        </div>
+        <div class="toggle-row">
+          <span>Pass Card inside cover?</span>
+          <div class="toggle-sw">
+            <button class="yes ${a.passcard!=='NO'?'active':''}" id="pc-yes" onclick="setToggle('passcard','yes')">YES</button>
+            <button class="no ${a.passcard==='NO'?'active':''}" id="pc-no" onclick="setToggle('passcard','no')">NO</button>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <span>Loan App &amp; Pass Card tallying with jewellery?</span>
+          <div class="toggle-sw">
+            <button class="yes ${a.tally!=='NO'?'active':''}" id="t-yes" onclick="setToggle('tally','yes')">YES</button>
+            <button class="no ${a.tally==='NO'?'active':''}" id="t-no" onclick="setToggle('tally','no')">NO</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appraiser & Action -->
+    <div class="card">
+      <div class="card-title">Appraiser & Action Taken</div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Name of Jewel Appraiser (conducted reappraisal)</label>
+        <input id="e-app" placeholder="Appraiser name" value="${a.appraiser2||''}">
+      </div>
+      <div class="form-group">
+        <label>Action Taken (if any discrepancy)</label>
+        <textarea id="e-action" rows="2" placeholder="e.g. Intimated RO Kadapa, NPA review initiated...">${a.action||''}</textarea>
+      </div>
+    </div>
+
+    <!-- Alert if discrepancy -->
+    <div id="disc-alert" style="display:none" class="alert alert-warn">⚠ Discrepancy detected — this account will be FLAGGED. Please fill Action Taken field.</div>
+
+    <!-- Save buttons -->
+    <div style="display:flex;gap:10px;margin-bottom:10px">
+      <button id="save-next-btn" class="btn btn-green" style="flex:2;padding:11px;font-size:14px" onclick="saveEntry(true)">💾 Save &amp; Next →</button>
+      <button class="btn btn-primary" style="flex:1" onclick="saveEntry(false)">Save Only</button>
+    </div>
+    <button class="btn btn-outline" style="width:100%;color:var(--amber);border-color:var(--amber)" onclick="markNotVerified()">✗ Mark Not Verified</button>
+    <div id="save-msg" style="margin-top:10px"></div>`;
+
+  // Set toggles state
+  _toggles={
+    purity:a.purity==='YES'?'yes':'no',
+    passcard:a.passcard==='NO'?'no':'yes',
+    tally:a.tally==='NO'?'no':'yes'
+  };
+  calcWtDiff();
+}
+
+// ── WEIGHT DIFF ──
+function calcWtDiff(){
+  const og=parseFloat(document.getElementById('e-og')?.value)||0;
+  const on_=parseFloat(document.getElementById('e-on')?.value)||0;
+  const rg=parseFloat(document.getElementById('e-rg')?.value)||0;
+  const rn=parseFloat(document.getElementById('e-rn')?.value)||0;
+  const el=document.getElementById('wt-diff-result');if(!el)return;
+  if(!document.getElementById('e-rg')?.value&&!document.getElementById('e-og')?.value){el.style.display='none';return}
+  const dg=rg-og,dn=rn-on_;
+  const grossOk=Math.abs(dg)<=0.2,netOk=Math.abs(dn)<=0.1;
+  const pBad=_toggles.purity==='yes',pcBad=_toggles.passcard==='no',tBad=_toggles.tally==='no';
+  const allOk=grossOk&&netOk&&!pBad&&!pcBad&&!tBad;
+  el.style.display='flex';
+  const discAlert=document.getElementById('disc-alert');
+  const saveBtn=document.getElementById('save-next-btn');
+  if(!allOk){
+    let msgs=[];
+    if(!grossOk)msgs.push(`Gross: ${dg>=0?'+':''}${dg.toFixed(3)}gm`);
+    if(!netOk)msgs.push(`Net: ${dn>=0?'+':''}${dn.toFixed(3)}gm`);
+    if(pBad)msgs.push('Purity mismatch');
+    if(pcBad)msgs.push('No Pass Card');
+    if(tBad)msgs.push('Not tallying');
+    el.className='diff-result diff-flag';
+    el.textContent='⚠ DISCREPANCY: '+msgs.join(' | ');
+    if(discAlert)discAlert.style.display='flex';
+    if(saveBtn)saveBtn.style.background='var(--red)';
+  }else{
+    el.className='diff-result diff-ok';
+    el.textContent=dg===0&&dn===0?'✓ Perfect match — No weight difference':`✓ Within tolerance | Gross: ${dg>=0?'+':''}${dg.toFixed(3)}gm | Net: ${dn>=0?'+':''}${dn.toFixed(3)}gm`;
+    if(discAlert)discAlert.style.display='none';
+    if(saveBtn)saveBtn.style.background='var(--green)';
+  }
+}
+
+// ── AUTO-COPY ──
+function toggleACopy(){
+  _autocopy=!_autocopy;
+  const tog=document.getElementById('ac-tog');
+  const knob=document.getElementById('ac-knob');
+  const lbl=document.getElementById('ac-lbl');
+  if(tog)tog.style.background=_autocopy?'var(--green)':'var(--gray)';
+  if(knob)knob.style.right=_autocopy?'3px':'21px';
+  if(lbl){lbl.style.color=_autocopy?'var(--green)':'var(--gray)';lbl.textContent=_autocopy?'ON':'OFF'}
+}
+
+function tryAutoCopy(){
+  if(!_autocopy)return;
+  const og=document.getElementById('e-og')?.value.trim();
+  const on_=document.getElementById('e-on')?.value.trim();
+  if(!og||!on_)return;
+  const rg=document.getElementById('e-rg');
+  const rn=document.getElementById('e-rn');
+  const ind=document.getElementById('copied-indicator');
+  const ogN=parseFloat(og),onN=parseFloat(on_);
+  if(!rg.value.trim()||(parseFloat(rg.value)===ogN)){rg.value=ogN.toFixed(3);rg.style.background='#F0FAF5'}
+  if(!rn.value.trim()||(parseFloat(rn.value)===onN)){rn.value=onN.toFixed(3);rn.style.background='#F0FAF5'}
+  if(ind)ind.style.display='block';
+  calcWtDiff();
+}
+
+function manualCopyWt(){
+  const og=document.getElementById('e-og')?.value.trim();
+  const on_=document.getElementById('e-on')?.value.trim();
+  if(!og&&!on_){alert('Enter sanction weights first.');return}
+  const rg=document.getElementById('e-rg');
+  const rn=document.getElementById('e-rn');
+  const ind=document.getElementById('copied-indicator');
+  if(og){rg.value=parseFloat(og).toFixed(3);rg.style.background='#F0FAF5'}
+  if(on_){rn.value=parseFloat(on_).toFixed(3);rn.style.background='#F0FAF5'}
+  if(ind)ind.style.display='block';
+  calcWtDiff();
+}
+
+function clearACTint(id){const el=document.getElementById(id);if(el)el.style.background=''}
+
+// ── TOGGLES ──
+function setToggle(type,val){
+  _toggles[type]=val;
+  const map={purity:['p'],passcard:['pc'],tally:['t']};
+  const [p]=map[type];
+  const y=document.getElementById(p+'-yes');
+  const n=document.getElementById(p+'-no');
+  if(y){y.classList.toggle('active',val==='yes')}
+  if(n){n.classList.toggle('active',val==='no')}
+  if(type==='purity'){
+    const dr=document.getElementById('purity-detail-row');
+    if(dr)dr.style.display=val==='yes'?'block':'none';
+  }
+  calcWtDiff();
+}
+
+// ── SAVE ENTRY ──
+async function saveEntry(goNext){
+  const a=_brAccounts[_brIdx];
+  const og=document.getElementById('e-og')?.value;
+  const on_=document.getElementById('e-on')?.value;
+  const rg=document.getElementById('e-rg')?.value;
+  const rn=document.getElementById('e-rn')?.value;
+  a.og=og!==''?parseFloat(og):'';
+  a.on_=on_!==''?parseFloat(on_):'';
+  a.rg=rg!==''?parseFloat(rg):'';
+  a.rn=rn!==''?parseFloat(rn):'';
+  a.purity=_toggles.purity==='yes'?'YES':'NO';
+  a.purity_detail=document.getElementById('e-pdetail')?.value||'';
+  a.passcard=_toggles.passcard==='yes'?'YES':'NO';
+  a.tally=_toggles.tally==='yes'?'YES':'NO';
+  a.appraiser2=document.getElementById('e-app')?.value||'';
+  a.action=document.getElementById('e-action')?.value||'';
+  const dg=a.rg!==''&&a.og!==''?Math.abs(a.rg-a.og):0;
+  const dn=a.rn!==''&&a.on_!==''?Math.abs(a.rn-a.on_):0;
+  const disc=dg>0.2||dn>0.1||a.purity==='YES'||a.passcard==='NO'||a.tally==='NO';
+  if(a.rg!==''||a.rn!=='') a.status=disc?'flagged':'ok';
+  _brAccounts[_brIdx]=a;
+  // Save to Firebase/local
+  await dbSet('gl-accounts/'+CUR.branchCode+'/'+a.sl,a);
+  const msg=document.getElementById('save-msg');
+  if(msg){msg.className='alert '+(disc?'alert-warn':'alert-ok');msg.style.display='flex';msg.textContent=disc?'⚠ Saved — Discrepancy flagged':'✓ Saved successfully'}
+  if(goNext&&_brIdx<_brAccounts.length-1) setTimeout(()=>renderEntryFor(_brIdx+1),600);
+}
+
+async function markNotVerified(){
+  const reason=prompt('Reason for not conducting reappraisal:');
+  if(!reason)return;
+  const a=_brAccounts[_brIdx];
+  a.status='not_verified';a.not_verified_reason=reason;
+  _brAccounts[_brIdx]=a;
+  await dbSet('gl-accounts/'+CUR.branchCode+'/'+a.sl,a);
+  if(_brIdx<_brAccounts.length-1)renderEntryFor(_brIdx+1);
+}
+
+// ── BRANCH REPORT ──
+async function renderBranchReport(){
+  const el=document.getElementById('b-report');if(!el)return;
+  el.innerHTML=`<div class="loading">Loading report data...</div>`;
+  const accsObj=await dbGet('gl-accounts/'+CUR.branchCode)||{};
+  const accs=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
+  const branches=await dbGet('gl-branches')||{};
+  const b=branches[CUR.branchCode]||{name:CUR.branchName,code:CUR.branchCode};
+  const pending=accs.filter(a=>a.status==='pending').length;
+  el.innerHTML=`
+    <div class="section-header"><h2>Annexure II Report</h2>
+      <div class="row">
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print (Landscape A4)</button>
+      </div>
+    </div>
+    ${pending>0?`<div class="alert alert-warn no-print">⚠ ${pending} account(s) still pending. Complete entry before submitting to RO Kadapa.</div>`:''}
+    <div class="card no-print">
+      <div class="card-title">Signatory Details</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+        <div><div class="form-group"><label>Branch Official Name</label><input id="sg-bo-name" placeholder="Name"></div>
+          <div class="form-group"><label>PF No.</label><input id="sg-bo-pf" placeholder="PF No."></div></div>
+        <div><div class="form-group"><label>Branch in Charge Name</label><input id="sg-bic-name" placeholder="Name"></div>
+          <div class="form-group"><label>PF No.</label><input id="sg-bic-pf" placeholder="PF No."></div></div>
+        <div><div class="form-group"><label>Gold Appraiser Name</label><input id="sg-app-name" placeholder="Name" value="${b.appraiser||''}"></div></div>
+        <div><div class="form-group"><label>Nominated Officer Name</label><input id="sg-nom-name" placeholder="Name"></div>
+          <div class="form-group"><label>PF No.</label><input id="sg-nom-pf" placeholder="PF No."></div></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:10px" onclick="refreshBranchReport()">🔄 Refresh Report Preview</button>
+    </div>
+    <div id="annexure-container"></div>`;
+  buildAnnexureII(b,accs,'annexure-container');
+}
+
+async function refreshBranchReport(){
+  const accsObj=await dbGet('gl-accounts/'+CUR.branchCode)||{};
+  const accs=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
+  const branches=await dbGet('gl-branches')||{};
+  const b=branches[CUR.branchCode]||{};
+  buildAnnexureII(b,accs,'annexure-container');
+}
+
+// ═══════════════════════════════════════════════
+//  ANNEXURE II BUILDER
+// ═══════════════════════════════════════════════
+function buildAnnexureII(b,accs,containerId){
+  const qDates={
+    'January-March 2026':['01-01-2026','31-03-2026'],
+    'April-June 2026':['01-04-2026','30-06-2026'],
+    'July-September 2026':['01-07-2026','30-09-2026'],
+    'October-December 2026':['01-10-2026','31-12-2026'],
+    'January-March 2027':['01-01-2027','31-03-2027'],
+  };
+  const qd=qDates[b.quarter]||['__________','__________'];
+  const total=accs.length;
+  const verified=accs.filter(a=>a.status==='ok'||a.status==='flagged').length;
+  const nv=accs.filter(a=>a.status==='not_verified');
+  const fmtDate=d=>{if(!d)return'—';if(d.includes('-')&&d.length===10){const p=d.split('-');if(p[0].length===4)return p[2]+'-'+p[1]+'-'+p[0];return d;}return d};
+  const getSig=id=>{const el=document.getElementById(id);return el?el.value:''};
+
+  const tbody=accs.map(a=>{
+    const og=a.og!==''&&a.og!==null&&a.og!==undefined?parseFloat(a.og):'';
+    const on_=a.on_!==''&&a.on_!==null&&a.on_!==undefined?parseFloat(a.on_):'';
+    const rg=a.rg!==''&&a.rg!==null&&a.rg!==undefined?parseFloat(a.rg):'';
+    const rn=a.rn!==''&&a.rn!==null&&a.rn!==undefined?parseFloat(a.rn):'';
+    const dg=rg!==''&&og!==''?rg-og:null;
+    const dn=rn!==''&&on_!==''?rn-on_:null;
+    const dgS=dg!==null&&Math.abs(dg)>0.2?'color:#B91C1C;font-weight:bold':'';
+    const dnS=dn!==null&&Math.abs(dn)>0.1?'color:#B91C1C;font-weight:bold':'';
+    const c=v=>v!==''&&v!==null&&v!==undefined?v:'&nbsp;';
+    return `<tr class="${a.status==='flagged'?'ann-flag-row':''}">
+      <td>${a.sl}</td>
+      <td class="left" style="font-size:6.5pt;word-break:break-all">${c(a.acno)}</td>
+      <td class="left" style="font-size:7pt">${c(a.bname)}</td>
+      <td>${og!==''?og.toFixed(3):'&nbsp;'}</td>
+      <td>${on_!==''?on_.toFixed(3):'&nbsp;'}</td>
+      <td>${rg!==''?rg.toFixed(3):'&nbsp;'}</td>
+      <td>${rn!==''?rn.toFixed(3):'&nbsp;'}</td>
+      <td style="${dgS}">${dg!==null?dg.toFixed(3):'&nbsp;'}</td>
+      <td style="${dnS}">${dn!==null?dn.toFixed(3):'&nbsp;'}</td>
+      <td>${a.purity==='YES'?'Yes'+(a.purity_detail?' — '+a.purity_detail:''):'No'}</td>
+      <td>${a.passcard||'YES'}</td>
+      <td>${a.tally||'YES'}</td>
+      <td class="left" style="font-size:6.5pt">${c(a.appraiser2)||c(getSig('sg-app-name'))||c(b.appraiser)}</td>
+      <td class="left" style="font-size:6.5pt">${c(a.action)}</td>
+    </tr>`;
+  }).join('');
+
+  const nvTable=nv.length?`<table class="ann-main-table" style="margin-top:4px">
+    <thead><tr>
+      <th style="width:5%">Sl. No.</th>
+      <th>Loan account no</th>
+      <th>Name of the Borrower</th>
+      <th>Reason for not conducting Surprise reappraisal</th>
+    </tr></thead>
+    <tbody>${nv.map((a,i)=>`<tr><td>${i+1}</td><td class="left">${a.acno||''}</td><td class="left">${a.bname||''}</td><td class="left">${a.not_verified_reason||''}</td></tr>`).join('')}</tbody>
+  </table>`:`<p style="font-family:'Times New Roman',serif;font-size:10pt;margin:4px 0 0 16px">&nbsp;&nbsp;&nbsp;&nbsp;NIL</p>`;
+
+  document.getElementById(containerId).innerHTML=`
+  <div class="annexure-wrap">
+    <p class="ann-title">Annexure II</p>
+    <p style="font-size:11pt;font-weight:bold;text-align:center;font-family:'Times New Roman',serif;margin-bottom:8px">
+      FORMAT OF CONFIRMATION TO BE SUBMITTED BY BRANCHES TO REGIONAL OFFICE WITH REGARD TO SURPRISE REAPPRAISAL OF GOLD LOANS
+    </p>
+    <table class="ann-outer-table" style="margin-bottom:0">
+      <tr>
+        <td style="width:50%;font-size:10pt"><b>From Branch:</b> ${b.name||'—'}&nbsp;&nbsp;&nbsp;<b>BR Code:</b> ${b.code||'—'}</td>
+        <td style="width:50%;font-size:10pt"><b>To</b> Gold loan vertical:<br><b>Regional Office:</b> ${b.ro||'Kadapa'}</td>
+      </tr>
+      <tr>
+        <td style="font-size:10pt"><b>Ref. No.:</b> ${b.refno||'—'}</td>
+        <td style="font-size:10pt"><b>Date:</b> ${fmtDate(b.date)||'—'}</td>
+      </tr>
+    </table>
+    <p class="ann-sub" style="font-family:'Times New Roman',serif;margin:8px 0;font-size:11pt">
+      SUB: SURPRISE REAPPRAISAL OF GOLD LOANS – CONFIRMATION FOR THE ${(b.quarter||'—').toUpperCase()} QUARTER
+    </p>
+    <table class="ann-outer-table" style="margin-bottom:0">
+      <tr><td style="width:40%;font-size:10pt"><b>Name of the Jewel Appraiser Conducting Verification</b></td>
+          <td style="font-size:10pt">${b.appraiser||getSig('sg-app-name')||'—'}</td></tr>
+      <tr><td style="font-size:10pt"><b>Mobile Number</b></td><td style="font-size:10pt">${b.mobile||'—'}</td></tr>
+      <tr><td style="font-size:10pt"><b>Name of the Parent Branch</b></td><td style="font-size:10pt">${b.parentBranch||'—'}</td></tr>
+    </table>
+    <p style="font-family:'Times New Roman',serif;font-size:10.5pt;margin:8px 0 4px;font-weight:bold">
+      Particulars of Jewel Loan Portfolio at ${b.name||'—'} Branch
+    </p>
+    <table class="ann-outer-table" style="margin-bottom:8px">
+      <tr>
+        <td style="font-size:10pt;font-weight:bold;text-align:center">Number of Gold Loans Sanctioned from ${qd[0]} to ${qd[1]}</td>
+        <td style="font-size:10pt;font-weight:bold;text-align:center">Number of Loans Verified</td>
+      </tr>
+      <tr>
+        <td style="font-size:11pt;text-align:center;font-weight:bold">${total}</td>
+        <td style="font-size:11pt;text-align:center;font-weight:bold">${verified}</td>
+      </tr>
+    </table>
+    <div class="ann-table-wrap" style="overflow-x:auto;margin-top:6px">
+    <table class="ann-main-table" style="table-layout:fixed;width:100%">
+      <colgroup>
+        <col style="width:3%"><col style="width:11%"><col style="width:11%">
+        <col style="width:5%"><col style="width:5%"><col style="width:5%"><col style="width:5%">
+        <col style="width:5%"><col style="width:5%"><col style="width:8%">
+        <col style="width:5%"><col style="width:9%"><col style="width:9%"><col style="width:10%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th rowspan="2">Sl. No</th>
+          <th rowspan="2">Loan account No.</th>
+          <th rowspan="2">Name of the Borrower</th>
+          <th colspan="2">Details of Appraisal at the time of sanction</th>
+          <th colspan="2">Details of Reappraisal</th>
+          <th rowspan="2">Diff in Gross Wt (gm)</th>
+          <th rowspan="2">Diff in Net Wt (gm)</th>
+          <th rowspan="2">Diff in purity (Yes/No) If Yes, details</th>
+          <th rowspan="2">Pass Card inside Cover (Yes/No)</th>
+          <th rowspan="2">No./Type/Wt in Loan App &amp; Pass Card tallying (Yes/No)</th>
+          <th rowspan="2">Name of Jewel Appraiser conducted reappraisal</th>
+          <th rowspan="2">Action taken by branch in case of discrepancy</th>
+        </tr>
+        <tr>
+          <th>Gross wt (gm)</th><th>Net wt (gm)</th>
+          <th>Gross wt (gm)</th><th>Net wt (gm)</th>
+        </tr>
+      </thead>
+      <tbody>${tbody}</tbody>
+    </table>
+    </div>
+    <p style="font-family:'Times New Roman',serif;font-size:10pt;margin:10px 0 4px">
+      &bull;&nbsp; We confirm having conducted reappraisal of all Gold Loan accounts as per the list provided vide your email dated _________________ Except for the following;
+    </p>
+    ${nvTable}
+    <p style="font-family:'Times New Roman',serif;font-size:10pt;margin:10px 0">
+      &bull;&nbsp; The due date for stamping of Electronic Bullion Weighing Scale supplied to our branch is <b>${fmtDate(b.scale)||'______________'}</b>. We note to obtain Periodical stamping/verification of the same from Department of Legal Metrology in time.
+    </p>
+    <table class="sig-table">
+      <tr>
+        <td><div class="sig-line"></div><p><b>Signature of Branch Official</b></p>
+          <p style="margin-top:6px">NAME: ${getSig('sg-bo-name')||'_________________________'}</p>
+          <p>PF NO: ${getSig('sg-bo-pf')||'_________________'}</p></td>
+        <td><div class="sig-line"></div><p><b>Signature of Branch in Charge</b></p>
+          <p style="margin-top:6px">NAME: ${getSig('sg-bic-name')||'_________________________'}</p>
+          <p>PF NO: ${getSig('sg-bic-pf')||'_________________'}</p></td>
+        <td><div class="sig-line"></div><p><b>Signature of the Gold Appraiser</b></p>
+          <p style="font-size:8pt;color:#555">(Attended Reappraisal)</p>
+          <p style="margin-top:6px">Name: ${getSig('sg-app-name')||b.appraiser||'_______________'}</p></td>
+        <td><div class="sig-line"></div><p><b>Signature of Nominated Officer</b></p>
+          <p style="margin-top:6px">NAME: ${getSig('sg-nom-name')||'_________________________'}</p>
+          <p>PF NO: ${getSig('sg-nom-pf')||'_________________'}</p></td>
+      </tr>
+    </table>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  UTILITY
+// ═══════════════════════════════════════════════
+function showMsg(id,msg,type){
+  const el=document.getElementById(id);if(!el)return;
+  const cls=type==='ok'?'alert-ok':type==='warn'?'alert-warn':type==='err'?'alert-err':'alert-info';
+  el.innerHTML=`<div class="alert ${cls}">${msg}</div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+window.onload=async function(){
+  // Check for saved Firebase config
+  const cfg=loadConfig();
+  if(cfg&&cfg.apiKey){initFirebase(cfg)}
+  else{document.getElementById('config-modal').style.display='flex'}
+  // Check for saved session
+  const sess=JSON.parse(localStorage.getItem('gl-session')||'null');
+  if(sess&&sess.uid){
+    CUR=sess;
+    document.getElementById('login-screen').style.display='none';
+    showApp();
+  }
+};
+</script>
+</body>
+</html>
