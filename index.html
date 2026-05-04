@@ -383,11 +383,10 @@ input:checked+.toggle-slider:before{transform:translateX(20px)}
       </div>
     </div>
     <button class="btn btn-navy" id="login-btn" onclick="doLogin()">Login →</button>
-    <div class="login-credit">
-      Created &amp; Developed by<br>
-      <strong>NUKAMREDDY VENKATESWARLU</strong><br>
-      Senior Manager · PF No. 669662<br>
-      Regional Office Kadapa · Union Bank of India
+    <div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);
+      font-size:11px;color:var(--gray)">
+      Developed &amp; Created by<br>
+      <strong style="color:var(--navy)">RABD · RO Kadapa</strong>
     </div>
   </div>
 </div>
@@ -518,14 +517,26 @@ async function doLogin(){
     }
     const creds=await dbGet('gl-creds')||{};
     const c=creds[uid];
-    if(c&&c.password===pwd&&c.active){
-      CUR={role:'branch',uid,branchCode:c.branch_code,branchName:c.branch_name};
+    // Fix: c.active can be true (boolean) or 1 (number) — check it is not explicitly false
+    if(c && String(c.password)===String(pwd) && c.active!==false && c.active!==0){
+      CUR={role:'branch',uid,
+        branchCode: c.branch_code||c.branchCode||'',
+        branchName: c.branch_name||c.branchName||''};
       localStorage.setItem('gl-session',JSON.stringify(CUR));
       showApp(); return;
     }
-    err.textContent='Invalid credentials. Contact RO Kadapa.';
+    if(c && String(c.password)!==String(pwd)){
+      err.textContent='Wrong password. Contact RO Kadapa.';
+    } else if(c && (c.active===false||c.active===0)){
+      err.textContent='Your credential is disabled. Contact RO Kadapa.';
+    } else {
+      err.textContent='User ID not found. Contact RO Kadapa.';
+    }
     err.style.display='block';
-  }catch(e){err.textContent='Connection error. Try again.';err.style.display='block';}
+  }catch(e){
+    err.textContent='Connection error: '+e.message+'. Try again.';
+    err.style.display='block';
+  }
   btn.textContent='Login →'; btn.disabled=false;
 }
 
@@ -876,8 +887,16 @@ async function createCred(){
   const uid=document.getElementById('cr-uid')?.value.trim();
   const pwd=document.getElementById('cr-pwd')?.value.trim();
   if(!uid||!pwd){alert('Fill all fields');return}
+  if(uid===ADMIN_ID){alert('This User ID is reserved for Admin');return}
   const branches=await dbGet('gl-branches')||{};
-  await dbSet('gl-creds/'+uid,{password:pwd,branch_code:brCode,branch_name:branches[brCode]?.name||brCode,active:true});
+  const brName=branches[brCode]?.name||brCode;
+  await dbSet('gl-creds/'+uid,{
+    password:pwd,
+    branch_code:brCode, branchCode:brCode,
+    branch_name:brName, branchName:brName,
+    active:true
+  });
+  showToast('✅ Credential created for '+uid,'ok');
   renderAdminBranches();
 }
 
@@ -1259,13 +1278,42 @@ function setTog(type,val){
 }
 
 function calcDiff(){
-  const og=parseFloat(document.getElementById('e-og')?.value)||0;
-  const on_=parseFloat(document.getElementById('e-on')?.value)||0;
-  const rg=parseFloat(document.getElementById('e-rg')?.value)||0;
-  const rn=parseFloat(document.getElementById('e-rn')?.value)||0;
-  const el=document.getElementById('diff-result'); if(!el)return;
+  const ogEl=document.getElementById('e-og');
+  const onEl=document.getElementById('e-on');
   const rgEl=document.getElementById('e-rg');
-  if(!rgEl?.value&&!document.getElementById('e-og')?.value){el.innerHTML='';return}
+  const rnEl=document.getElementById('e-rn');
+  const el=document.getElementById('diff-result'); if(!el)return;
+
+  const og=parseFloat(ogEl?.value)||0;
+  const on_=parseFloat(onEl?.value)||0;
+  const rg=parseFloat(rgEl?.value)||0;
+  const rn=parseFloat(rnEl?.value)||0;
+
+  if(!rgEl?.value&&!ogEl?.value){el.innerHTML='';return}
+
+  // ── ACCOUNT CLOSED DETECTION ──
+  // If BOTH sanction and reappraisal gross & net are 0 → account closed
+  const ogZero = ogEl?.value!==''&&parseFloat(ogEl.value)===0;
+  const onZero = onEl?.value!==''&&parseFloat(onEl.value)===0;
+  const rgZero = rgEl?.value!==''&&parseFloat(rgEl.value)===0;
+  const rnZero = rnEl?.value!==''&&parseFloat(rnEl.value)===0;
+  const bothSidesZero = (ogZero||onZero) && (rgZero||rnZero);
+
+  if(bothSidesZero && !document.getElementById('acc-closed-handled')){
+    el.innerHTML=`<div class="diff-box diff-warn">
+      🔒 Weights are 0 — Is this account <b>CLOSED</b>?
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="markAccountClosed()" style="flex:1;padding:9px;background:var(--amber);color:white;
+          border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">
+          ✓ Yes — Account Closed</button>
+        <button onclick="dismissClosedPrompt()" style="flex:1;padding:9px;background:white;color:var(--gray);
+          border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">
+          No — Keep Entry</button>
+      </div>
+    </div>`;
+    return;
+  }
+
   const dg=rg-og, dn=rn-on_;
   const grossOk=Math.abs(dg)<=0.2, netOk=Math.abs(dn)<=0.1;
   const allOk=grossOk&&netOk&&!_toggles.purity&&_toggles.passcard&&_toggles.tally;
@@ -1286,6 +1334,39 @@ function calcDiff(){
     if(discAlert)discAlert.style.display='none';
     if(saveBtn){saveBtn.style.background='var(--green)';saveBtn.textContent='💾 Save & Next'}
   }
+}
+
+function markAccountClosed(){
+  // Set all weights to 0 and mark action as Account Closed
+  ['e-og','e-on','e-rg','e-rn'].forEach(id=>{
+    const el=document.getElementById(id);if(el&&!el.value)el.value='0';
+  });
+  const actionEl=document.getElementById('e-action');
+  if(actionEl){
+    actionEl.value='Account Closed — Nil balance. No jewels available for reappraisal.';
+    actionEl.style.background='#FFF3E0';
+    actionEl.style.borderColor='var(--amber)';
+  }
+  // Add handled marker so popup doesn't repeat
+  const el=document.getElementById('diff-result');
+  if(el){
+    const marker=document.createElement('span');
+    marker.id='acc-closed-handled';marker.style.display='none';
+    el.appendChild(marker);
+    el.innerHTML=`<div class="diff-box diff-warn">🔒 Marked as <b>Account Closed</b> — Remarks filled automatically.</div>`
+      +`<span id="acc-closed-handled" style="display:none"></span>`;
+  }
+  showToast('🔒 Account Closed marked','warn');
+}
+
+function dismissClosedPrompt(){
+  const el=document.getElementById('diff-result');
+  if(el){
+    const marker=document.createElement('span');
+    marker.id='acc-closed-handled';marker.style.display='none';
+    document.body.appendChild(marker); // put outside so it persists
+  }
+  calcDiff();
 }
 
 function tryAutoCopy(){
