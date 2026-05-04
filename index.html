@@ -2,389 +2,438 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>GL Reappraisal Pro — RO Kadapa</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0B1E3D">
+<title>GL Reappraisal Pro</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-/* ═══════ RESET & VARIABLES ═══════ */
-*{box-sizing:border-box;margin:0;padding:0}
+/* ═══ RESET ══════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
   --navy:#0B1E3D;--navy2:#102347;--navy3:#1A3566;
-  --gold:#C9971A;--gold-light:#F0C84A;--gold-pale:#FDF3D0;
-  --cream:#FAF7F0;--white:#FFFFFF;
-  --green:#1A7A4A;--green-bg:#E8F5EE;
-  --red:#B91C1C;--red-bg:#FEE2E2;
-  --amber:#B45309;--amber-bg:#FEF3C7;
-  --gray:#6B7280;--gray-light:#F3F4F6;
+  --gold:#C9971A;--goldL:#F0C84A;--goldP:#FDF3D0;
+  --green:#1A7A4A;--greenBg:#E8F5EE;
+  --red:#B91C1C;--redBg:#FEE2E2;
+  --amber:#B45309;--amberBg:#FEF3C7;
+  --gray:#6B7280;--grayL:#F3F4F6;
   --border:#E2DDD5;--text:#1C1917;--text2:#57534E;
-  --shadow:0 2px 8px rgba(11,30,61,.10);
-  --radius:10px;--radius-lg:16px;
+  --cream:#FAF7F0;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
 }
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--text);font-size:13px;min-height:100vh}
+html,body{height:100%;overflow:hidden;background:var(--navy)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  font-size:14px;color:var(--text);display:flex;flex-direction:column}
 
-/* ═══════ TOPBAR ═══════ */
-.topbar{background:var(--navy);color:white;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
-.brand{display:flex;align-items:center;gap:10px}
-.brand-logo{width:34px;height:34px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.brand h1{font-size:14px;font-weight:600;color:white;letter-spacing:.2px}
-.brand p{font-size:10px;color:rgba(255,255,255,.55);margin-top:-1px}
-.topbar-right{display:flex;align-items:center;gap:8px}
-.pill{background:rgba(201,151,26,.18);color:var(--gold-light);border:1px solid rgba(201,151,26,.3);padding:3px 10px;border-radius:20px;font-size:10px;font-weight:500}
+/* ═══ APP SHELL ══════════════════════════════════ */
+#app{display:flex;flex-direction:column;height:100%;overflow:hidden}
+#app-header{
+  background:var(--navy);color:white;
+  padding:calc(10px + var(--safe-top)) 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;min-height:56px;
+}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:34px;height:34px;background:var(--gold);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.hdr-title{font-size:15px;font-weight:600;line-height:1.2}
+.hdr-sub{font-size:10px;opacity:.6;margin-top:1px}
+.hdr-right{display:flex;align-items:center;gap:6px}
+.online-pill{background:rgba(26,122,74,.25);color:#6EE7B7;border:1px solid rgba(26,122,74,.4);
+  padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px}
+.online-dot{width:6px;height:6px;border-radius:50%;background:#6EE7B7;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.offline-pill{background:rgba(180,83,9,.25);color:#FCD34D;border:1px solid rgba(180,83,9,.4);
+  padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.icon-btn{background:rgba(255,255,255,.1);border:none;color:white;width:34px;height:34px;
+  border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
 
-/* ═══════ NAV TABS ═══════ */
-.nav-tabs{background:var(--navy2);display:flex;padding:0 20px;overflow-x:auto;gap:0}
-.nav-tab{padding:9px 18px;color:rgba(255,255,255,.5);font-size:11px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;letter-spacing:.2px}
-.nav-tab:hover{color:rgba(255,255,255,.8)}
-.nav-tab.active{color:var(--gold-light);border-bottom-color:var(--gold)}
+/* ═══ BODY AREA ══════════════════════════════════ */
+#app-body{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--cream)}
+.page{display:none;padding:14px 14px calc(80px + var(--safe-bot));min-height:100%;animation:fadeUp .2s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-/* ═══════ SCREENS ═══════ */
-.screen{display:none;padding:20px;max-width:1100px;margin:0 auto;animation:fadeUp .2s ease}
-.screen.active{display:block}
-@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* ═══ BOTTOM NAV ═════════════════════════════════ */
+#app-nav{
+  background:var(--navy);
+  display:flex;border-top:1px solid rgba(255,255,255,.1);
+  padding-bottom:var(--safe-bot);flex-shrink:0;
+}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:10px 4px 6px;cursor:pointer;transition:all .15s;border:none;background:none;color:rgba(255,255,255,.5)}
+.nav-item.active{color:var(--goldL)}
+.nav-item .nav-icon{font-size:20px;margin-bottom:3px}
+.nav-item .nav-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.nav-item.active .nav-icon{transform:scale(1.1)}
 
-/* ═══════ CARDS ═══════ */
-.card{background:white;border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;box-shadow:var(--shadow);margin-bottom:14px}
-.card-title{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.card-title::before{content:'';width:3px;height:13px;background:var(--gold);border-radius:2px}
-
-/* ═══════ STATS ═══════ */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
-.stat-card{background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
-.stat-card .lbl{font-size:10px;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.4px}
-.stat-card .num{font-size:26px;font-weight:700;margin-top:4px;font-family:'Courier New',monospace}
-
-/* ═══════ BUTTONS ═══════ */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
-.btn-primary{background:var(--navy);color:white}.btn-primary:hover{background:var(--navy3)}
-.btn-gold{background:var(--gold);color:white}.btn-gold:hover{background:#A87D12}
+/* ═══ LOGIN PAGE ════════════════════════════════ */
+#login-page{
+  position:fixed;inset:0;z-index:200;
+  background:var(--navy);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+.login-card{background:white;border-radius:20px;padding:28px 24px;width:100%;max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.login-logo{text-align:center;margin-bottom:22px}
+.login-logo-icon{width:72px;height:72px;background:var(--gold);border-radius:18px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:34px;
+  margin-bottom:12px;box-shadow:0 8px 24px rgba(201,151,26,.4)}
+.login-logo h2{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.login-logo p{font-size:11px;color:var(--gray)}
+.login-err{background:var(--redBg);color:var(--red);border-radius:8px;padding:10px 12px;
+  font-size:12px;margin-bottom:14px;display:none;border:1px solid rgba(185,28,28,.2)}
+.f-group{margin-bottom:14px}
+.f-group label{display:block;font-size:11px;font-weight:700;color:var(--gray);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.f-group input,.f-group select,.f-group textarea{
+  width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:14px;font-family:inherit;color:var(--text);background:white;outline:none;
+  transition:border-color .15s;-webkit-appearance:none}
+.f-group input:focus,.f-group select:focus,.f-group textarea:focus{border-color:var(--navy3)}
+.f-group input[type=number]{font-family:monospace}
+.pwd-wrap{position:relative}
+.pwd-wrap input{padding-right:44px}
+.pwd-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;font-size:16px;cursor:pointer;color:var(--gray)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;
+  border:none;font-family:inherit;transition:all .15s;width:100%}
+.btn-navy{background:var(--navy);color:white}
+.btn-navy:active{background:var(--navy3)}
+.btn-gold{background:var(--gold);color:white}
+.btn-gold:active{background:#A87D12}
 .btn-green{background:var(--green);color:white}
+.btn-green:active{opacity:.85}
 .btn-red{background:var(--red);color:white}
-.btn-outline{background:transparent;color:var(--navy);border:1px solid var(--border)}.btn-outline:hover{background:var(--gray-light)}
-.btn-sm{padding:5px 12px;font-size:11px}
-
-/* ═══════ FORM ═══════ */
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-.form-group{display:flex;flex-direction:column;gap:4px}
-.form-group label{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
-.form-group input,.form-group select,.form-group textarea{padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:12px;font-family:inherit;color:var(--text);background:white;outline:none;transition:border-color .15s}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--navy3);box-shadow:0 0 0 3px rgba(26,53,102,.07)}
-
-/* ═══════ TABLE ═══════ */
-.tbl{width:100%;border-collapse:collapse}
-.tbl th{background:var(--navy);color:rgba(255,255,255,.85);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:9px 12px;text-align:left}
-.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
-.tbl tr:hover td{background:#FAFAF8}
-.tbl tr.flagged td{background:#FFF5F5}
-
-/* ═══════ BADGES ═══════ */
-.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700}
-.badge-ok{background:var(--green-bg);color:var(--green)}
-.badge-flag{background:var(--red-bg);color:var(--red)}
-.badge-warn{background:var(--amber-bg);color:var(--amber)}
-.badge-gray{background:var(--gray-light);color:var(--gray)}
-.badge-info{background:#EFF6FF;color:#1D4ED8}
-
-/* ═══════ PROGRESS ═══════ */
-.prog-wrap{margin:6px 0 14px}
-.prog-bar{height:6px;background:var(--gray-light);border-radius:3px;overflow:hidden}
-.prog-fill{height:100%;border-radius:3px;transition:width .4s}
-.prog-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-top:3px}
-
-/* ═══════ UPLOAD ZONE ═══════ */
-.upload-zone{border:2px dashed var(--gold);border-radius:var(--radius-lg);padding:28px;text-align:center;background:var(--gold-pale);cursor:pointer;transition:all .2s}
-.upload-zone:hover{border-color:#A87D12;background:#FEF0B5}
-.upload-zone .uz-icon{font-size:32px;margin-bottom:8px}
-.upload-zone p{font-size:12px;color:var(--text2)}
-.upload-zone strong{color:var(--navy)}
-
-/* ═══════ ALERTS ═══════ */
-.alert{padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
-.alert-warn{background:var(--amber-bg);color:var(--amber);border:1px solid #FCD34D}
-.alert-ok{background:var(--green-bg);color:var(--green);border:1px solid #6EE7B7}
-.alert-info{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
-.alert-err{background:var(--red-bg);color:var(--red);border:1px solid #FCA5A5}
-
-/* ═══════ WEIGHT ENTRY ═══════ */
-.wt-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:start}
-.wt-box{background:var(--gray-light);border-radius:var(--radius);padding:14px;border:1px solid var(--border)}
-.wt-box h4{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.wt-box.orig{border-left:3px solid var(--navy3)}
-.wt-box.reapp{border-left:3px solid var(--gold)}
-.diff-result{padding:10px 14px;border-radius:8px;margin-top:10px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px}
-.diff-ok{background:var(--green-bg);color:var(--green)}
-.diff-flag{background:var(--red-bg);color:var(--red)}
-.diff-warn{background:var(--amber-bg);color:var(--amber)}
-
-/* ═══════ TOGGLE ═══════ */
-.toggle-group{display:flex;flex-direction:column;gap:8px}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--gray-light);border-radius:8px;border:1px solid var(--border)}
-.toggle-row span{font-size:12px;font-weight:500}
-.toggle-sw{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
-.toggle-sw button{padding:4px 14px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:white;color:var(--text2);transition:all .15s;font-family:inherit}
-.toggle-sw button.yes.active{background:var(--green);color:white}
-.toggle-sw button.no.active{background:var(--red);color:white}
-
-/* ═══════ AUTOCOPY ═══════ */
-.autocopy-panel{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:6px 4px;min-width:80px}
-.autocopy-toggle{width:42px;height:23px;border-radius:12px;background:var(--green);cursor:pointer;position:relative;transition:background .2s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
-.autocopy-knob{width:17px;height:17px;border-radius:50%;background:white;position:absolute;top:3px;right:3px;transition:right .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.copied-indicator{display:none;margin-top:6px;padding:3px 8px;background:var(--green-bg);border-radius:5px;font-size:10px;font-weight:600;color:var(--green);text-align:center}
-
-/* ═══════ LOGIN ═══════ */
-#login-screen{min-height:100vh;background:var(--navy);display:flex;align-items:center;justify-content:center;padding:20px}
-.login-card{background:white;border-radius:20px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-.login-logo{text-align:center;margin-bottom:24px}
-.login-logo .llg{width:64px;height:64px;background:var(--gold);border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:10px;box-shadow:0 4px 16px rgba(201,151,26,.4)}
-.login-logo h2{font-size:18px;font-weight:700;color:var(--navy)}
-.login-logo p{font-size:11px;color:var(--gray);margin-top:2px}
-.login-credit{text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
-.login-credit p{font-size:10px;color:var(--gray);line-height:1.6}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
+.btn-sm{padding:10px 16px;font-size:12px;border-radius:8px;width:auto}
+.login-credit{text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);
+  font-size:10px;color:var(--gray);line-height:1.7}
 .login-credit strong{color:var(--navy);font-weight:600}
 
-/* ═══════ FIREBASE CONFIG MODAL ═══════ */
-#config-modal{display:none!important}
-.config-card{background:white;border-radius:16px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
-.config-card h2{font-size:16px;font-weight:700;color:var(--navy);margin-bottom:4px}
-.config-card p{font-size:12px;color:var(--text2);margin-bottom:16px}
+/* ═══ CARDS ══════════════════════════════════════ */
+.card{background:white;border:1px solid var(--border);border-radius:14px;
+  margin-bottom:12px;overflow:hidden;box-shadow:0 1px 4px rgba(11,30,61,.06)}
+.card-head{padding:14px 16px 0}
+.card-body{padding:14px 16px}
+.card-title{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;
+  letter-spacing:.7px;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.card-title::before{content:'';width:3px;height:13px;background:var(--gold);
+  border-radius:2px;flex-shrink:0}
 
-/* ═══════ CRED CARD ═══════ */
-.cred-card{background:var(--navy);border-radius:14px;padding:20px;max-width:320px;margin:0 auto;color:white}
+/* ═══ STATS ══════════════════════════════════════ */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-card{background:white;border:1px solid var(--border);border-radius:12px;
+  padding:14px;display:flex;align-items:center;gap:10px}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:18px;flex-shrink:0}
+.stat-val{font-size:22px;font-weight:700;font-family:monospace;line-height:1}
+.stat-lbl{font-size:10px;color:var(--gray);font-weight:500;margin-top:2px}
 
-/* ═══════ PRINT STYLES — LANDSCAPE A4 ═══════ */
+/* ═══ PROGRESS ═══════════════════════════════════ */
+.prog-bar{height:8px;background:var(--grayL);border-radius:4px;overflow:hidden;margin:8px 0}
+.prog-fill{height:100%;border-radius:4px;transition:width .5s ease}
+
+/* ═══ BRANCH LIST ITEM ═══════════════════════════ */
+.branch-item{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;
+  align-items:center;gap:12px;cursor:pointer;background:white;transition:background .1s}
+.branch-item:last-child{border-bottom:none}
+.branch-item:active{background:var(--grayL)}
+.branch-icon{width:42px;height:42px;border-radius:11px;background:rgba(11,30,61,.08);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.branch-name{font-size:14px;font-weight:600;color:var(--navy)}
+.branch-meta{font-size:11px;color:var(--gray);margin-top:2px}
+.branch-right{margin-left:auto;text-align:right}
+
+/* ═══ STATUS BADGES ══════════════════════════════ */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;
+  font-size:10px;font-weight:700}
+.badge-ok{background:var(--greenBg);color:var(--green)}
+.badge-flag{background:var(--redBg);color:var(--red)}
+.badge-warn{background:var(--amberBg);color:var(--amber)}
+.badge-gray{background:var(--grayL);color:var(--gray)}
+.badge-blue{background:#EFF6FF;color:#1D4ED8}
+
+/* ═══ ACCOUNT LIST ITEM ══════════════════════════ */
+.acct-item{padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;background:white;cursor:pointer;transition:background .1s}
+.acct-item:last-child{border-bottom:none}
+.acct-item:active{background:var(--grayL)}
+.acct-item.flagged{background:rgba(185,28,28,.03)}
+.acct-num{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.acct-name{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:2px}
+.acct-no{font-size:10px;color:var(--gray);font-family:monospace}
+.acct-right{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.wt-chip{font-size:9px;font-family:monospace;font-weight:600;padding:2px 6px;
+  border-radius:4px;background:var(--grayL);color:var(--gray)}
+.wt-chip.bad{background:var(--redBg);color:var(--red)}
+
+/* ═══ ENTRY FORM ════════════════════════════════ */
+.wt-section{background:var(--grayL);border-radius:12px;padding:14px;margin-bottom:10px;
+  border-left:3px solid var(--navy3)}
+.wt-section.reapp{border-left-color:var(--gold)}
+.wt-section h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  margin-bottom:10px;color:var(--gray)}
+.wt-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.copy-btn{width:100%;padding:12px;background:var(--navy);color:white;border:none;
+  border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;margin:8px 0;
+  display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit}
+.copy-btn:active{background:var(--navy3)}
+.auto-toggle{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--greenBg);border-radius:10px;margin-bottom:8px;
+  border:1px solid rgba(26,122,74,.2)}
+.auto-toggle span{font-size:12px;font-weight:600;color:var(--green)}
+.toggle-switch{position:relative;width:44px;height:24px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:12px;cursor:pointer;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;
+  background:white;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input:checked+.toggle-slider{background:var(--green)}
+input:checked+.toggle-slider:before{transform:translateX(20px)}
+.diff-box{padding:12px 14px;border-radius:10px;margin-top:8px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:8px}
+.diff-ok{background:var(--greenBg);color:var(--green)}
+.diff-bad{background:var(--redBg);color:var(--red)}
+.diff-warn{background:var(--amberBg);color:var(--amber)}
+.check-row{display:flex;align-items:center;justify-content:space-between;
+  padding:13px 14px;background:var(--grayL);border-radius:10px;margin-bottom:8px;
+  border:1px solid var(--border)}
+.check-row-label{font-size:12px;font-weight:500;color:var(--text);flex:1;padding-right:12px}
+.yn-group{display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0}
+.yn-btn{padding:7px 16px;border:none;font-size:11px;font-weight:700;cursor:pointer;
+  background:white;color:var(--gray);transition:all .15s;font-family:inherit}
+.yn-btn.yes-active{background:var(--green);color:white}
+.yn-btn.no-active{background:var(--red);color:white}
+.copied-badge{background:var(--greenBg);color:var(--green);font-size:10px;font-weight:700;
+  padding:4px 10px;border-radius:8px;text-align:center;margin-top:6px;display:none}
+
+/* ═══ NAV COUNTER BADGE ══════════════════════════ */
+.nav-badge{position:relative;display:inline-block}
+.nav-badge-count{position:absolute;top:-6px;right:-10px;background:var(--red);color:white;
+  font-size:8px;font-weight:700;width:16px;height:16px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;border:2px solid var(--navy)}
+
+/* ═══ SECTION HEADER ════════════════════════════ */
+.sec-head{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;
+  letter-spacing:.6px;margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:7px}
+.sec-head::before{content:'';width:3px;height:12px;background:var(--gold);border-radius:2px}
+
+/* ═══ ALERT BOXES ═══════════════════════════════ */
+.alert{padding:12px 14px;border-radius:10px;font-size:12px;line-height:1.5;
+  margin-bottom:12px;display:flex;gap:8px;align-items:flex-start}
+.alert-info{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+.alert-warn{background:var(--amberBg);color:var(--amber);border:1px solid #FCD34D}
+.alert-ok{background:var(--greenBg);color:var(--green);border:1px solid #6EE7B7}
+.alert-err{background:var(--redBg);color:var(--red);border:1px solid #FCA5A5}
+
+/* ═══ UPLOAD ZONE ═══════════════════════════════ */
+.upload-zone{border:2px dashed var(--gold);border-radius:14px;padding:28px 20px;
+  text-align:center;background:var(--goldP);cursor:pointer;transition:all .2s}
+.upload-zone:active{background:#FEF0B5}
+.upload-zone .uz-icon{font-size:36px;margin-bottom:8px}
+.upload-zone p{font-size:13px;color:var(--text2);margin-top:4px}
+.upload-zone strong{color:var(--navy)}
+
+/* ═══ CRED CARD ═════════════════════════════════ */
+.cred-card{background:var(--navy);border-radius:16px;padding:20px;color:white;margin-top:12px}
+.cred-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.cred-chip{background:rgba(201,151,26,.2);border:1px solid rgba(201,151,26,.3);
+  border-radius:10px;padding:10px;text-align:center}
+.cred-chip-label{font-size:9px;color:var(--goldL);font-weight:700;margin-bottom:4px}
+.cred-chip-val{font-size:17px;font-weight:700;font-family:monospace;letter-spacing:.5px}
+
+/* ═══ FAB ═══════════════════════════════════════ */
+.fab{position:fixed;bottom:calc(70px + var(--safe-bot) + 12px);right:16px;
+  width:52px;height:52px;background:var(--gold);color:white;border:none;
+  border-radius:16px;font-size:22px;cursor:pointer;z-index:50;
+  box-shadow:0 4px 16px rgba(201,151,26,.4);display:flex;align-items:center;justify-content:center;
+  transition:all .15s}
+.fab:active{transform:scale(.93)}
+
+/* ═══ SEARCH BAR ════════════════════════════════ */
+.search-bar{display:flex;align-items:center;gap:8px;background:white;
+  border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.search-bar input{flex:1;border:none;outline:none;font-size:13px;background:transparent;font-family:inherit}
+.search-bar .search-icon{color:var(--gray);font-size:16px}
+.filter-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;
+  scrollbar-width:none;-ms-overflow-style:none}
+.filter-chips::-webkit-scrollbar{display:none}
+.fchip{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;
+  cursor:pointer;white-space:nowrap;border:1.5px solid var(--border);
+  background:white;color:var(--gray);flex-shrink:0;transition:all .15s}
+.fchip.active-ok{background:var(--green);color:white;border-color:var(--green)}
+.fchip.active-flag{background:var(--red);color:white;border-color:var(--red)}
+.fchip.active-warn{background:var(--amber);color:white;border-color:var(--amber)}
+.fchip.active-gray{background:var(--gray);color:white;border-color:var(--gray)}
+.fchip.active-navy{background:var(--navy);color:white;border-color:var(--navy)}
+
+/* ═══ REPORT / ANNEXURE ══════════════════════════ */
+.ann-wrap{background:white;font-family:'Times New Roman',Times,serif;
+  font-size:9.5pt;color:#000;padding:10px}
+.ann-outer{width:100%;border-collapse:collapse;border:1.5px solid #000;margin-bottom:6px}
+.ann-outer td{border:1px solid #000;padding:4px 6px;font-size:9pt;vertical-align:top}
+.ann-title{font-size:11pt;font-weight:bold;text-align:center;text-decoration:underline;margin-bottom:4px}
+.ann-sub{font-size:9pt;font-weight:bold;text-align:center;margin:5px 0;text-transform:uppercase}
+.ann-tbl{width:100%;border-collapse:collapse;font-size:7pt;table-layout:fixed}
+.ann-tbl th{background:#f0f0f0;border:1px solid #000;padding:2px 3px;
+  text-align:center;font-weight:bold;font-size:6.5pt;vertical-align:middle}
+.ann-tbl td{border:1px solid #000;padding:2px 3px;font-size:7pt;vertical-align:middle;text-align:center}
+.ann-tbl td.l{text-align:left}
+.ann-flag td{background:#fff0f0}
+.sig-tbl{width:100%;border-collapse:collapse;margin-top:10px}
+.sig-tbl td{width:25%;text-align:center;padding:3px 6px;font-size:8pt;vertical-align:bottom}
+.sig-line{border-top:1px solid #000;margin:30px auto 4px;width:80%}
+#ann-print-wrap{display:none}
+.report-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px}
+.ann-tbl-min{min-width:900px}
+
+/* ═══ PRINT ══════════════════════════════════════ */
 @media print{
-  @page{size:A4 landscape;margin:8mm 10mm}
-  /* Hide all UI chrome */
-  .topbar,.nav-tabs,.no-print,
-  #login-screen,#config-modal{display:none!important}
-  /* Hide ALL screens */
-  .screen{display:none!important;padding:0}
-  /* Show ONLY the annexure content */
-  #annexure-print-container{display:block!important}
-  body{background:white}
-  /* Flatten ALL overflow so no rows get clipped */
-  *{overflow:visible!important;max-height:none!important}
-  .ann-table-wrap{overflow:visible!important}
-  .annexure-wrap{box-shadow:none!important}
-  /* Table header repeats on every page */
-  .ann-main-table thead{display:table-header-group}
-  .ann-main-table tbody{display:table-row-group}
-  /* Tight row heights for dense table */
-  .ann-main-table td{
-    min-height:14px!important;height:14px!important;
-    font-size:6.5pt!important;padding:2px 3px!important;
-  }
-  .ann-main-table tr{page-break-inside:avoid}
-  .ann-main-table{table-layout:fixed!important;width:100%!important;font-size:6.5pt!important}
-  .ann-main-table th{font-size:7pt!important;padding:2px 3px!important}
-  .ann-outer-table td{padding:2px 4px!important;font-size:8.5pt!important}
-  .ann-title{font-size:10pt!important;margin-bottom:3px!important}
-  .ann-sub{font-size:8pt!important;margin:3px 0!important}
-  .sig-table{margin-top:8px!important}
-  .sig-line{margin-top:20px!important}
+  @page{size:A4 landscape;margin:7mm 9mm}
+  body,html{overflow:visible!important;height:auto!important}
+  #app{display:none!important}
+  #ann-print-wrap{display:block!important}
+  .ann-wrap *{overflow:visible!important}
+  .ann-tbl thead{display:table-header-group}
+  .ann-tbl{min-width:unset!important;font-size:6.5pt!important}
+  .ann-tbl td,.ann-tbl th{font-size:6.5pt!important;padding:2px 3px!important;min-height:13px}
+  .ann-outer td{font-size:8pt!important;padding:2px 4px!important}
+  .ann-title{font-size:10pt!important}
+  .ann-sub{font-size:8pt!important}
 }
 
-/* ═══════ MOBILE PORTRAIT — normal use ═══════ */
-@media screen and (max-width:600px){
-  /* Topbar compact */
-  .topbar{padding:0 12px;height:48px}
-  .brand h1{font-size:13px}
-  .brand p{display:none}
-  .pill{font-size:9px;padding:2px 7px}
+/* ═══ LOADING ════════════════════════════════════ */
+.spinner{width:36px;height:36px;border:3px solid var(--border);
+  border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-center{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;min-height:200px;gap:14px}
+.loading-txt{color:var(--gray);font-size:12px}
 
-  /* Nav tabs scrollable, smaller */
-  .nav-tabs{padding:0 8px}
-  .nav-tab{padding:7px 12px;font-size:10px}
+/* ═══ EMPTY STATE ════════════════════════════════ */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:250px;gap:12px;text-align:center;padding:24px}
+.empty .e-icon{font-size:52px;opacity:.4}
+.empty .e-title{font-size:16px;font-weight:600;color:var(--navy)}
+.empty .e-sub{font-size:12px;color:var(--gray)}
 
-  /* Screens full width */
-  .screen{padding:10px}
+/* ═══ DIVIDER ════════════════════════════════════ */
+.divider{height:1px;background:var(--border);margin:12px 0}
 
-  /* Cards tighter */
-  .card{padding:12px 14px;margin-bottom:10px}
+/* ═══ MODAL BOTTOM SHEET ════════════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none}
+.overlay.open{display:flex;align-items:flex-end}
+.sheet{background:white;border-radius:20px 20px 0 0;width:100%;max-height:85vh;
+  overflow-y:auto;padding:0 0 calc(16px + var(--safe-bot));animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;
+  margin:12px auto 6px}
+.sheet-title{font-size:15px;font-weight:700;color:var(--navy);padding:8px 16px 14px;
+  border-bottom:1px solid var(--border)}
+.sheet-item{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;
+  border-bottom:1px solid var(--border);transition:background .1s}
+.sheet-item:last-child{border-bottom:none}
+.sheet-item:active{background:var(--grayL)}
+.sheet-item .si-icon{font-size:20px;width:36px;height:36px;display:flex;align-items:center;
+  justify-content:center;border-radius:9px}
+.sheet-item .si-text{font-size:13px;font-weight:500}
+.sheet-item .si-sub{font-size:11px;color:var(--gray);margin-top:1px}
 
-  /* Stats 2 columns on mobile */
-  .stats-row{grid-template-columns:repeat(2,1fr)!important;gap:8px}
-  .stat-card .num{font-size:22px}
-
-  /* Form grid single column */
-  .form-grid{grid-template-columns:1fr!important}
-
-  /* Table — horizontal scroll on mobile */
-  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tbl{min-width:500px;font-size:11px}
-  .tbl th{font-size:10px;padding:7px 8px}
-  .tbl td{padding:7px 8px;font-size:11px}
-
-  /* Weight grid single column on mobile */
-  .wt-grid{grid-template-columns:1fr!important}
-  .autocopy-panel{flex-direction:row!important;justify-content:center;
-    gap:12px;padding:8px 0;min-width:unset}
-
-  /* Toggle rows wrap */
-  .toggle-row{flex-wrap:wrap;gap:6px}
-
-  /* Buttons full width */
-  .btn-primary,.btn-gold,.btn-green{width:100%;justify-content:center}
-
-  /* Login card full width */
-  .login-card{padding:24px 20px;margin:8px}
-
-  /* Report section stack */
-  .sig-section{grid-template-columns:1fr!important}
-
-  /* Annexure preview table scroll */
-  .ann-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
-  .ann-main-table{min-width:900px}
-  .annexure-wrap{font-size:9pt}
-}
-
-/* ═══════ MOBILE LANDSCAPE — PDF preview comfort ═══════ */
-@media screen and (max-height:500px) and (orientation:landscape){
-  /* Topbar thinner */
-  .topbar{height:40px}
-  .brand h1{font-size:12px}
-  .brand p{display:none}
-  .nav-tab{padding:5px 12px;font-size:10px}
-
-  /* More screen space for content */
-  .screen{padding:8px 12px}
-  .card{padding:10px 12px;margin-bottom:8px}
-
-  /* Annexure table visible in landscape */
-  .ann-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .ann-main-table{font-size:7.5pt}
-
-  /* Stats row 4 columns in landscape */
-  .stats-row{grid-template-columns:repeat(4,1fr)!important}
-}
-
-/* ═══════ ROTATION HINT — show when portrait for report ═══════ */
-.rotate-hint{
-  display:none;
-  background:var(--navy);color:white;
-  padding:8px 14px;text-align:center;
-  font-size:11px;font-weight:500;
-  position:fixed;bottom:70px;left:50%;transform:translateX(-50%);
-  border-radius:20px;z-index:999;
-  box-shadow:0 4px 16px rgba(0,0,0,.3);
-  white-space:nowrap;
-}
-/* Show rotate hint only on mobile in portrait when on report tab */
-@media screen and (max-width:600px) and (orientation:portrait){
-  .show-rotate-hint .rotate-hint{display:block!important}
-}
-
-/* ═══════ ANNEXURE II ═══════ */
-.annexure-wrap{background:white;font-family:'Times New Roman',Times,serif;font-size:11pt;color:#000;padding:10px 0}
-.ann-outer-table{width:100%;border-collapse:collapse;border:1.5px solid #000}
-.ann-outer-table td,.ann-outer-table th{border:1px solid #000;padding:4px 6px;vertical-align:top}
-.ann-title{font-size:13pt;font-weight:bold;text-align:center;text-decoration:underline;margin-bottom:6px}
-.ann-sub{font-size:10.5pt;font-weight:bold;text-align:center;margin:6px 0;text-transform:uppercase}
-.ann-main-table{width:100%;border-collapse:collapse;font-size:8pt;font-family:'Times New Roman',Times,serif;table-layout:fixed}
-.ann-main-table th{background:#f0f0f0;border:1px solid #000;padding:3px 4px;text-align:center;font-weight:bold;vertical-align:middle;font-size:7.5pt}
-.ann-main-table td{border:1px solid #000;padding:3px 4px;vertical-align:middle;text-align:center;font-size:8pt}
-.ann-main-table td.left{text-align:left}
-.ann-flag-row td{background:#fff0f0}
-.sig-table{width:100%;border-collapse:collapse;margin-top:14px}
-.sig-table td{width:25%;text-align:center;padding:4px 8px;vertical-align:bottom;font-size:9pt}
-.sig-line{border-top:1px solid #000;margin:40px auto 4px;width:80%}
-
-/* ═══════ MISC ═══════ */
-.divider{height:1px;background:var(--border);margin:16px 0}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.flex-1{flex:1}
-.loading{text-align:center;padding:40px;color:var(--gray);font-size:14px}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.section-header h2{font-size:16px;font-weight:600;color:var(--navy)}
-.online-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:4px;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* ═══ OFFLINE BANNER ════════════════════════════ */
+#offline-banner{background:var(--amber);color:white;text-align:center;padding:8px;
+  font-size:11px;font-weight:600;display:none;flex-shrink:0}
+#offline-banner.show{display:block}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════ ROTATE HINT ═══════════════ -->
-<div id="rotate-hint" class="rotate-hint" style="display:none">
-  📱 Rotate phone to Landscape for better report view
-</div>
+<!-- ═══ PRINT WRAPPER (only visible on print) ═══ -->
+<div id="ann-print-wrap"></div>
 
-<!-- ═══════════════ PRINT CONTAINER (always in DOM, shown only on print) ═══════════════ -->
-<div id="annexure-print-container" style="display:none"></div>
-
-<!-- ═══════════════ FIREBASE CONFIG MODAL ═══════════════ -->
-<!-- Firebase config hardcoded — no modal needed -->
-  </div>
-</div>
-
-<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
-<div id="login-screen">
+<!-- ═══ LOGIN PAGE ═══════════════════════════════ -->
+<div id="login-page">
   <div class="login-card">
     <div class="login-logo">
-      <div class="llg">🏅</div>
+      <div class="login-logo-icon">🏅</div>
       <h2>GL Reappraisal Pro</h2>
       <p>Union Bank of India · Regional Office Kadapa</p>
     </div>
-    <div id="login-err" class="alert alert-err" style="display:none">Invalid credentials. Contact RO Kadapa.</div>
-    <div class="form-group" style="margin-bottom:12px">
+    <div id="login-err" class="login-err"></div>
+    <div class="f-group">
       <label>User ID</label>
-      <input id="l-uid" placeholder="Enter User ID" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+      <input id="l-uid" type="text" placeholder="Enter User ID" autocomplete="off"
+        autocorrect="off" autocapitalize="off" spellcheck="false"
+        onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <div class="form-group" style="margin-bottom:16px">
+    <div class="f-group">
       <label>Password</label>
-      <input id="l-pwd" type="password" placeholder="Enter Password" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="pwd-wrap">
+        <input id="l-pwd" type="password" placeholder="Enter Password"
+          onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="pwd-toggle" onclick="togglePwd()" type="button">👁</button>
+      </div>
     </div>
-    <button class="btn btn-primary" style="width:100%;padding:11px;font-size:13px" onclick="doLogin()">Login →</button>
+    <button class="btn btn-navy" id="login-btn" onclick="doLogin()">Login →</button>
     <div class="login-credit">
-      <p>Created &amp; Developed by<br>
-        <strong>NUKAMREDDY VENKATESWARLU</strong><br>
-        Senior Manager · PF No. 669662<br>
-        Regional Office Kadapa · Union Bank of India</p>
+      Created &amp; Developed by<br>
+      <strong>NUKAMREDDY VENKATESWARLU</strong><br>
+      Senior Manager · PF No. 669662<br>
+      Regional Office Kadapa · Union Bank of India
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ MAIN APP ═══════════════ -->
-<div id="main-app" style="display:none">
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-logo">🏅</div>
+<!-- ═══ MAIN APP ══════════════════════════════════ -->
+<div id="app" style="display:none">
+  <div id="app-header">
+    <div class="hdr-left">
+      <div class="hdr-logo">🏅</div>
       <div>
-        <h1>GL Reappraisal Pro</h1>
-        <p id="topbar-sub">Gold Loan Surprise Reappraisal · RO Kadapa</p>
+        <div class="hdr-title">GL Reappraisal Pro</div>
+        <div class="hdr-sub" id="hdr-sub">Loading...</div>
       </div>
     </div>
-    <div class="topbar-right">
-      <span id="online-status" class="pill"><span class="online-dot"></span>Live</span>
-      <span class="pill" id="topbar-role">—</span>
-      <button class="btn btn-outline btn-sm" onclick="doLogout()" style="color:white;border-color:rgba(255,255,255,.3)">Logout</button>
+    <div class="hdr-right">
+      <div id="conn-pill" class="online-pill"><div class="online-dot"></div>Live</div>
+      <button class="icon-btn" onclick="showMenu()">⋮</button>
     </div>
   </div>
-  <div class="nav-tabs" id="nav-tabs"></div>
-  <div id="app-screens"></div>
+  <div id="offline-banner">📶 Offline — entries saved locally, auto-sync when online</div>
+  <div id="app-body">
+    <!-- Pages injected here -->
+    <div id="pg-dashboard" class="page active"></div>
+    <div id="pg-upload"    class="page"></div>
+    <div id="pg-accounts"  class="page"></div>
+    <div id="pg-entry"     class="page"></div>
+    <div id="pg-report"    class="page"></div>
+  </div>
+  <div id="app-nav"></div>
+</div>
+
+<!-- ═══ BOTTOM SHEET OVERLAY ═════════════════════ -->
+<div id="overlay" class="overlay" onclick="closeSheet()">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-title">Menu</div>
+    <div id="sheet-body"></div>
+  </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-//  GLOBAL STATE
-// ═══════════════════════════════════════════════
-const ADMIN_ID = 'ROKA2026';
-const ADMIN_PW = 'RO@Kadapa#2026';
-let DB = null;
-let LOCAL_MODE = false;
-let CUR = {role:'',uid:'',branchCode:'',branchName:''};
-let _autocopy = true;
-let _toggles = {purity:'no',passcard:'yes',tally:'yes'};
-let _brAccounts = [];
-let _brIdx = 0;
-let _uploadedAccts = [];
-
-// ═══════════════════════════════════════════════
-//  FIREBASE — hardcoded config (no setup needed)
-// ═══════════════════════════════════════════════
-const _FIREBASE_CFG = {
+'use strict';
+// ═══════════════════════════════════════════════════════════
+//  FIREBASE CONFIG — hardcoded
+// ═══════════════════════════════════════════════════════════
+const FB_CFG = {
   apiKey:            "AIzaSyBHyDp63kxYFzwYSWZXqgrdMh7s-_s-bxE",
   authDomain:        "gl-reappraisal-kadapa.firebaseapp.com",
   databaseURL:       "https://gl-reappraisal-kadapa-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -394,1191 +443,1142 @@ const _FIREBASE_CFG = {
   appId:             "1:878874447402:web:c2c0d78edbe0b7b7b37d53"
 };
 
-function loadConfig(){ return _FIREBASE_CFG; }
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+const ADMIN_ID = 'ROKA2026', ADMIN_PW = 'RO@Kadapa#2026';
+let DB = null;
+let CUR = JSON.parse(localStorage.getItem('gl-session') || 'null');
+let _brAccs = [], _brIdx = 0, _autoCopy = true;
+let _toggles = {purity:false, passcard:true, tally:true};
+let _uploadAccs = [], _filterStatus = 'all', _search = '';
+let _isOnline = true;
+const QUARTERS = [
+  {label:'Q1: January–March 2026',   value:'January-March 2026',   start:'01-01-2026',end:'31-03-2026'},
+  {label:'Q2: April–June 2026',      value:'April-June 2026',      start:'01-04-2026',end:'30-06-2026'},
+  {label:'Q3: July–September 2026',  value:'July-September 2026',  start:'01-07-2026',end:'30-09-2026'},
+  {label:'Q4: October–December 2026',value:'October-December 2026',start:'01-10-2026',end:'31-12-2026'},
+  {label:'Q1: January–March 2027',   value:'January-March 2027',   start:'01-01-2027',end:'31-03-2027'},
+];
 
-function saveConfig(){
-  document.getElementById('config-modal').style.display='none';
-  initFirebase(_FIREBASE_CFG);
-}
-
-function useLocalMode(){
-  LOCAL_MODE = true;
-  document.getElementById('config-modal').style.display='none';
-  document.getElementById('online-status').innerHTML='🔴 Local';
-}
-
-function initFirebase(cfg){
+// ═══════════════════════════════════════════════════════════
+//  FIREBASE
+// ═══════════════════════════════════════════════════════════
+function initFB(){
   try{
-    const app = firebase.initializeApp(cfg);
+    const app = firebase.initializeApp(FB_CFG);
     DB = firebase.database();
-    document.getElementById('online-status').innerHTML='<span class="online-dot"></span>Live';
-    console.log('Firebase connected');
-  }catch(e){
-    console.error('Firebase init error',e);
-    LOCAL_MODE=true;
-    document.getElementById('online-status').innerHTML='⚠️ Local';
-  }
+    // Offline persistence
+    DB.ref('.info/connected').on('value', snap=>{
+      _isOnline = snap.val() === true;
+      const b = document.getElementById('offline-banner');
+      const p = document.getElementById('conn-pill');
+      if(b) b.className = _isOnline ? 'offline-banner' : 'offline-banner show';
+      if(p) p.innerHTML = _isOnline
+        ? '<div class="online-dot"></div>Live'
+        : '<span style="color:#FCD34D">● Offline</span>';
+    });
+  }catch(e){ console.error('Firebase init error',e); }
 }
 
-// ═══════════════════════════════════════════════
-//  DB HELPERS
-// ═══════════════════════════════════════════════
-async function dbSet(path,val){
-  if(DB&&!LOCAL_MODE) return DB.ref(path).set(val);
-  const d=JSON.parse(localStorage.getItem('gl-db')||'{}');
-  setPath(d,path,val);
-  localStorage.setItem('gl-db',JSON.stringify(d));
-}
+async function dbSet(path,val){ if(DB) return DB.ref(path).set(val); lsSet(path,val); }
 async function dbGet(path){
-  if(DB&&!LOCAL_MODE){const snap=await DB.ref(path).get();return snap.exists()?snap.val():null}
-  const d=JSON.parse(localStorage.getItem('gl-db')||'{}');
-  return getPath(d,path);
+  if(DB){ const s = await DB.ref(path).get(); return s.exists()?s.val():null; }
+  return lsGet(path);
 }
-async function dbRemove(path){
-  if(DB&&!LOCAL_MODE) return DB.ref(path).remove();
-  const d=JSON.parse(localStorage.getItem('gl-db')||'{}');
-  removePath(d,path);
-  localStorage.setItem('gl-db',JSON.stringify(d));
-}
-function dbListen(path,cb){
-  if(DB&&!LOCAL_MODE){DB.ref(path).on('value',snap=>cb(snap.val()));return}
-  cb(getPath(JSON.parse(localStorage.getItem('gl-db')||'{}'),path));
-}
-function setPath(obj,path,val){const k=path.split('/').filter(Boolean);let c=obj;for(let i=0;i<k.length-1;i++){if(!c[k[i]])c[k[i]]={};c=c[k[i]]}c[k[k.length-1]]=val}
-function getPath(obj,path){const k=path.split('/').filter(Boolean);let c=obj;for(const p of k){if(!c||typeof c!=='object')return null;c=c[p]}return c??null}
-function removePath(obj,path){const k=path.split('/').filter(Boolean);let c=obj;for(let i=0;i<k.length-1;i++){if(!c[k[i]])return;c=c[k[i]]}delete c[k[k.length-1]];localStorage.setItem('gl-db',JSON.stringify(obj))}
+async function dbDel(path){ if(DB) return DB.ref(path).remove(); lsDel(path); }
 
-// ═══════════════════════════════════════════════
-//  LOGIN / LOGOUT
-// ═══════════════════════════════════════════════
+// Local storage fallback
+function lsSet(p,v){const d=lsAll();setPath(d,p,v);localStorage.setItem('gl-db',JSON.stringify(d))}
+function lsGet(p){return getPath(lsAll(),p)}
+function lsDel(p){const d=lsAll();delPath(d,p);localStorage.setItem('gl-db',JSON.stringify(d))}
+function lsAll(){try{return JSON.parse(localStorage.getItem('gl-db')||'{}')}catch{return{}}}
+function setPath(o,p,v){const k=p.split('/').filter(Boolean);let c=o;for(let i=0;i<k.length-1;i++){if(!c[k[i]])c[k[i]]={};c=c[k[i]]}c[k[k.length-1]]=v}
+function getPath(o,p){const k=p.split('/').filter(Boolean);let c=o;for(const x of k){if(!c||typeof c!=='object')return null;c=c[x]}return c??null}
+function delPath(o,p){const k=p.split('/').filter(Boolean);let c=o;for(let i=0;i<k.length-1;i++){if(!c[k[i]])return;c=c[k[i]]}delete c[k[k.length-1]];localStorage.setItem('gl-db',JSON.stringify(o))}
+
+// ═══════════════════════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════════════════════
+function togglePwd(){const i=document.getElementById('l-pwd');i.type=i.type==='password'?'text':'password'}
+
 async function doLogin(){
   const uid=document.getElementById('l-uid').value.trim();
   const pwd=document.getElementById('l-pwd').value.trim();
   const err=document.getElementById('login-err');
+  const btn=document.getElementById('login-btn');
   err.style.display='none';
-  if(!uid||!pwd){err.style.display='flex';err.textContent='Please enter User ID and Password.';return}
-  if(uid===ADMIN_ID&&pwd===ADMIN_PW){
-    CUR={role:'admin',uid,branchCode:'',branchName:'RO Kadapa'};
-    localStorage.setItem('gl-session',JSON.stringify(CUR));
-    showApp();return;
-  }
-  const creds=await dbGet('gl-creds')||{};
-  const c=creds[uid];
-  if(c&&c.password===pwd&&c.active){
-    CUR={role:'branch',uid,branchCode:c.branchCode,branchName:c.branchName};
-    localStorage.setItem('gl-session',JSON.stringify(CUR));
-    showApp();return;
-  }
-  err.style.display='flex';err.textContent='Invalid credentials. Contact RO Kadapa.';
+  if(!uid||!pwd){err.textContent='Enter User ID and Password';err.style.display='block';return}
+  btn.textContent='Logging in...'; btn.disabled=true;
+  try{
+    if(uid===ADMIN_ID&&pwd===ADMIN_PW){
+      CUR={role:'admin',uid,branchName:'Regional Office Kadapa',branchCode:''};
+      localStorage.setItem('gl-session',JSON.stringify(CUR));
+      showApp(); return;
+    }
+    const creds=await dbGet('gl-creds')||{};
+    const c=creds[uid];
+    if(c&&c.password===pwd&&c.active){
+      CUR={role:'branch',uid,branchCode:c.branch_code,branchName:c.branch_name};
+      localStorage.setItem('gl-session',JSON.stringify(CUR));
+      showApp(); return;
+    }
+    err.textContent='Invalid credentials. Contact RO Kadapa.';
+    err.style.display='block';
+  }catch(e){err.textContent='Connection error. Try again.';err.style.display='block';}
+  btn.textContent='Login →'; btn.disabled=false;
 }
 
 function doLogout(){
   localStorage.removeItem('gl-session');
-  CUR={role:'',uid:'',branchCode:'',branchName:''};
-  document.getElementById('main-app').style.display='none';
-  document.getElementById('login-screen').style.display='flex';
+  CUR=null; _brAccs=[]; _brIdx=0;
+  document.getElementById('login-page').style.display='flex';
+  document.getElementById('app').style.display='none';
   document.getElementById('l-uid').value='';
   document.getElementById('l-pwd').value='';
+  closeSheet();
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 //  APP SHELL
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 function showApp(){
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('main-app').style.display='block';
-  const role=CUR.role==='admin'?'RO Admin':'Branch Officer';
-  document.getElementById('topbar-role').textContent=role;
-  document.getElementById('topbar-sub').textContent=CUR.role==='admin'
-    ?'Regional Office Kadapa — Administrator'
-    :'Branch: '+CUR.branchName+' ('+CUR.branchCode+')';
-  CUR.role==='admin'?buildAdminApp():buildBranchApp();
+  document.getElementById('login-page').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('hdr-sub').textContent =
+    CUR.role==='admin' ? 'Administrator · RO Kadapa' : `${CUR.branchName}`;
+  if(CUR.role==='admin') buildAdminNav();
+  else buildBranchNav();
 }
 
-function buildTabs(tabs){
-  document.getElementById('nav-tabs').innerHTML=tabs.map((t,i)=>
-    `<div class="nav-tab ${i===0?'active':''}" onclick="showTab('${t.id}',this)">${t.label}</div>`).join('');
-}
-function showTab(id,el){
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const sc=document.getElementById(id);if(sc)sc.classList.add('active');
-  // Show rotate hint on mobile portrait when report tab opens
-  const hint=document.getElementById('rotate-hint');
-  if(hint){
-    const isReport=id.includes('report')||el.textContent.includes('Report')||el.textContent.includes('📄');
-    const isMobile=window.innerWidth<768;
-    const isPortrait=window.innerHeight>window.innerWidth;
-    hint.style.display=(isReport&&isMobile&&isPortrait)?'block':'none';
-  }
-}
-function buildScreens(ids){
-  document.getElementById('app-screens').innerHTML=ids.map((id,i)=>
-    `<div id="${id}" class="screen ${i===0?'active':''}"></div>`).join('');
+function buildAdminNav(){
+  document.getElementById('app-nav').innerHTML = `
+    <button class="nav-item active" onclick="showPage('dashboard',this)" id="nav-dashboard">
+      <div class="nav-icon">📊</div><div class="nav-label">Dashboard</div>
+    </button>
+    <button class="nav-item" onclick="showPage('upload',this)" id="nav-upload">
+      <div class="nav-icon">📂</div><div class="nav-label">Upload</div>
+    </button>
+    <button class="nav-item" onclick="showPage('accounts',this)" id="nav-accounts">
+      <div class="nav-icon">🏦</div><div class="nav-label">Branches</div>
+    </button>
+    <button class="nav-item" onclick="showPage('report',this)" id="nav-report">
+      <div class="nav-icon">📄</div><div class="nav-label">Report</div>
+    </button>`;
+  renderAdminDashboard();
+  renderUploadPage();
+  renderAdminBranches();
+  renderAdminReport();
 }
 
-// ═══════════════════════════════════════════════
-//  ████████  ADMIN APP  ████████
-// ═══════════════════════════════════════════════
-function buildAdminApp(){
-  buildTabs([
-    {id:'s-dashboard',label:'📊 Dashboard'},
-    {id:'s-upload',label:'📂 Upload Data'},
-    {id:'s-branches',label:'🏦 Branches'},
-    {id:'s-creds',label:'🔑 Credentials'},
-    {id:'s-report',label:'📄 Annexure II'},
+function buildBranchNav(){
+  document.getElementById('app-nav').innerHTML = `
+    <button class="nav-item active" onclick="showPage('accounts',this)" id="nav-accounts">
+      <div class="nav-badge"><div class="nav-icon">📋</div>
+        <div class="nav-badge-count" id="pending-badge" style="display:none"></div></div>
+      <div class="nav-label">Accounts</div>
+    </button>
+    <button class="nav-item" onclick="showPage('entry',this)" id="nav-entry">
+      <div class="nav-icon">✏️</div><div class="nav-label">Entry</div>
+    </button>
+    <button class="nav-item" onclick="showPage('report',this)" id="nav-report">
+      <div class="nav-icon">📄</div><div class="nav-label">Report</div>
+    </button>`;
+  loadBranchAccounts();
+}
+
+function showPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('app-body').scrollTop=0;
+  if(id==='dashboard') renderAdminDashboard();
+  if(id==='accounts' && CUR.role==='branch') renderBranchAccountList();
+  if(id==='report' && CUR.role==='branch') renderBranchReport();
+  if(id==='report' && CUR.role==='admin') renderAdminReport();
+}
+
+function showMenu(){
+  openSheet('Menu',[
+    {icon:'👤',color:'#EFF6FF',label:`Logged in as ${CUR.uid}`,sub:CUR.branchName||'Administrator',fn:null},
+    {icon:'🔄',color:C_greenBg,label:'Refresh Data',sub:'Sync latest from server',fn:'refreshData()'},
+    {icon:'🚪',color:C_redBg,label:'Logout',sub:'Sign out of the app',fn:'doLogout()'},
   ]);
-  buildScreens(['s-dashboard','s-upload','s-branches','s-creds','s-report']);
-  document.querySelectorAll('.nav-tab').forEach((t,i)=>{
-    const ids=['s-dashboard','s-upload','s-branches','s-creds','s-report'];
-    t.addEventListener('click',()=>{
-      if(ids[i]==='s-dashboard')renderDashboard();
-      if(ids[i]==='s-branches')renderBranches();
-      if(ids[i]==='s-creds')renderCreds();
-      if(ids[i]==='s-report')renderAdminReport();
-    });
-  });
-  renderDashboard();
-  renderUpload();
-  renderBranches();
-  renderCreds();
+}
+const C_greenBg='#E8F5EE', C_redBg='#FEE2E2';
+
+function openSheet(title, items){
+  document.getElementById('sheet-title').textContent=title;
+  document.getElementById('sheet-body').innerHTML=items.map(i=>
+    `<div class="sheet-item" ${i.fn?`onclick="closeSheet();setTimeout(()=>{${i.fn}},200)"`:''}">
+      <div class="si-icon" style="background:${i.color||'#F3F4F6'}">${i.icon}</div>
+      <div><div class="si-text">${i.label}</div>
+        ${i.sub?`<div class="si-sub">${i.sub}</div>`:''}</div>
+    </div>`).join('');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeSheet(){ document.getElementById('overlay').classList.remove('open'); }
+
+async function refreshData(){
+  if(CUR.role==='branch') await loadBranchAccounts();
+  else renderAdminDashboard();
 }
 
-// ── DASHBOARD ──
-async function renderDashboard(){
-  const el=document.getElementById('s-dashboard');
-  if(!el)return;
-  el.innerHTML=`<div class="loading">⟳ Loading live data...</div>`;
+// ═══════════════════════════════════════════════════════════
+//  ADMIN — DASHBOARD
+// ═══════════════════════════════════════════════════════════
+async function renderAdminDashboard(){
+  const el=document.getElementById('pg-dashboard');
+  el.innerHTML=`<div class="loading-center"><div class="spinner"></div><div class="loading-txt">Loading dashboard...</div></div>`;
   const branches=await dbGet('gl-branches')||{};
   const codes=Object.keys(branches);
   if(!codes.length){
-    el.innerHTML=`<div class="alert alert-warn">⚠️ No branch data uploaded yet. Go to <b>Upload Data</b> tab.</div>`;return;
+    el.innerHTML=`<div class="empty"><div class="e-icon">📂</div>
+      <div class="e-title">No Branches Yet</div>
+      <div class="e-sub">Go to Upload tab to add branch data</div></div>`;
+    return;
   }
-  let totalBr=codes.length,doneBr=0,partBr=0,notBr=0;
-  let totalAcc=0,verAcc=0,flagAcc=0,pendAcc=0;
+  let totBr=codes.length,doneBr=0,partBr=0,notBr=0,totAcc=0,verAcc=0,flagAcc=0,pendAcc=0;
   const rows=[];
   for(const code of codes){
     const b=branches[code];
     const accsObj=await dbGet('gl-accounts/'+code)||{};
     const accs=Object.values(accsObj);
-    const total=accs.length;
-    const done=accs.filter(a=>a.status==='ok').length;
-    const flag=accs.filter(a=>a.status==='flagged').length;
-    const notv=accs.filter(a=>a.status==='not_verified').length;
-    const pend=accs.filter(a=>a.status==='pending').length;
-    const pct=total>0?Math.round((done+flag+notv)/total*100):0;
-    totalAcc+=total;verAcc+=done;flagAcc+=flag;pendAcc+=pend;
-    const st=pct===100?'complete':pct>0?'partial':'not_started';
-    if(st==='complete')doneBr++;else if(st==='partial')partBr++;else notBr++;
-    rows.push({b,code,total,done,flag,notv,pend,pct,st});
+    const tot=accs.length,done=accs.filter(a=>a.status==='ok').length,
+      flag=accs.filter(a=>a.status==='flagged').length,
+      notv=accs.filter(a=>a.status==='not_verified').length,
+      pend=accs.filter(a=>a.status==='pending').length;
+    const pct=tot>0?Math.round((done+flag+notv)/tot*100):0;
+    totAcc+=tot;verAcc+=done;flagAcc+=flag;pendAcc+=pend;
+    if(pct===100)doneBr++;else if(pct>0)partBr++;else notBr++;
+    rows.push({b,code,tot,done,flag,pend,pct});
   }
   el.innerHTML=`
-    <div class="section-header"><h2>RO Kadapa — Branch Dashboard</h2>
-      <button class="btn btn-primary btn-sm" onclick="renderDashboard()">⟳ Refresh</button></div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="lbl">Total Branches</div><div class="num" style="color:var(--navy3)">${totalBr}</div></div>
-      <div class="stat-card"><div class="lbl">Completed</div><div class="num" style="color:var(--green)">${doneBr}</div></div>
-      <div class="stat-card"><div class="lbl">In Progress</div><div class="num" style="color:var(--amber)">${partBr}</div></div>
-      <div class="stat-card"><div class="lbl">Not Started</div><div class="num" style="color:var(--red)">${notBr}</div></div>
-      <div class="stat-card"><div class="lbl">Total Accounts</div><div class="num" style="color:var(--navy3)">${totalAcc}</div></div>
-      <div class="stat-card"><div class="lbl">Verified OK</div><div class="num" style="color:var(--green)">${verAcc}</div></div>
-      <div class="stat-card"><div class="lbl">Flagged</div><div class="num" style="color:var(--red)">${flagAcc}</div></div>
-      <div class="stat-card"><div class="lbl">Pending</div><div class="num" style="color:var(--amber)">${pendAcc}</div></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(11,30,61,.08)">🏦</div>
+        <div><div class="stat-val" style="color:var(--navy3)">${totBr}</div><div class="stat-lbl">Branches</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--greenBg)">✅</div>
+        <div><div class="stat-val" style="color:var(--green)">${doneBr}</div><div class="stat-lbl">Completed</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--amberBg)">⏳</div>
+        <div><div class="stat-val" style="color:var(--amber)">${partBr}</div><div class="stat-lbl">In Progress</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--redBg)">🔴</div>
+        <div><div class="stat-val" style="color:var(--red)">${notBr}</div><div class="stat-lbl">Not Started</div></div></div>
     </div>
-    <div class="prog-wrap">
-      <div class="prog-bar"><div class="prog-fill" style="width:${totalBr>0?Math.round(doneBr/totalBr*100):0}%;background:var(--green)"></div></div>
-      <div class="prog-label"><span>Branches Completed</span><span>${totalBr>0?Math.round(doneBr/totalBr*100):0}%</span></div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(11,30,61,.08)">📋</div>
+        <div><div class="stat-val" style="color:var(--navy3)">${totAcc}</div><div class="stat-lbl">Total Accounts</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--greenBg)">✔️</div>
+        <div><div class="stat-val" style="color:var(--green)">${verAcc}</div><div class="stat-lbl">Verified</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--redBg)">⚠️</div>
+        <div><div class="stat-val" style="color:var(--red)">${flagAcc}</div><div class="stat-lbl">Flagged</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--amberBg)">🕐</div>
+        <div><div class="stat-val" style="color:var(--amber)">${pendAcc}</div><div class="stat-lbl">Pending</div></div></div>
     </div>
-    <div class="card" style="padding:0;overflow:hidden">
-      <table class="tbl">
-        <thead><tr>
-          <th>Branch Name</th><th>Code</th><th>Quarter</th>
-          <th>Total</th><th>Verified</th><th>Flagged</th><th>Pending</th>
-          <th>Progress</th><th>Status</th>
-        </tr></thead>
-        <tbody>${rows.map(r=>`
-          <tr>
-            <td><b>${r.b.name||r.code}</b></td>
-            <td class="text-mono" style="font-family:monospace">${r.code}</td>
-            <td style="font-size:11px">${r.b.quarter||'—'}</td>
-            <td>${r.total}</td>
-            <td style="color:var(--green);font-weight:600">${r.done}</td>
-            <td style="color:var(--red);font-weight:600">${r.flag}</td>
-            <td style="color:var(--amber);font-weight:600">${r.pend}</td>
-            <td style="min-width:100px">
-              <div style="display:flex;align-items:center;gap:6px">
-                <div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:${r.pct}%;background:${r.pct===100?'var(--green)':r.pct>0?'var(--amber)':'var(--red)'}"></div></div>
-                <span style="font-size:11px;font-weight:700;width:32px">${r.pct}%</span>
-              </div>
-            </td>
-            <td>${r.st==='complete'?'<span class="badge badge-ok">✓ Complete</span>':r.st==='partial'?'<span class="badge badge-warn">⟳ In Progress</span>':'<span class="badge badge-gray">Not Started</span>'}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
+    <div class="sec-head">Branch Progress</div>
+    <div class="card">
+      ${rows.map(r=>{
+        const clr=r.pct===100?'var(--green)':r.pct>0?'var(--amber)':'var(--red)';
+        const lbl=r.pct===100?'✓ Complete':r.pct>0?'In Progress':'Not Started';
+        return `<div class="branch-item" onclick="showBranchDetail('${r.code}')">
+          <div class="branch-icon">🏦</div>
+          <div style="flex:1;min-width:0">
+            <div class="branch-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.b.name}</div>
+            <div class="branch-meta">${r.code} · ${r.b.quarter||'—'}</div>
+            <div class="prog-bar" style="margin:6px 0 4px">
+              <div class="prog-fill" style="width:${r.pct}%;background:${clr}"></div></div>
+            <div style="display:flex;gap:8px;font-size:10px">
+              <span style="color:var(--green)">✓${r.done}</span>
+              <span style="color:var(--red)">⚠${r.flag}</span>
+              <span style="color:var(--amber)">●${r.pend}</span>
+            </div>
+          </div>
+          <div class="branch-right">
+            <div style="font-size:16px;font-weight:700;color:${clr}">${r.pct}%</div>
+            <div style="font-size:10px;color:${clr};margin-top:2px">${lbl}</div>
+          </div>
+        </div>`;
+      }).join('')}
     </div>`;
 }
 
-// ── UPLOAD ──
-function renderUpload(){
-  const el=document.getElementById('s-upload');if(!el)return;
-  el.innerHTML=`
-    <div class="section-header"><h2>Upload Branch Data</h2></div>
-    <div class="alert alert-info">ℹ️ Upload one Excel file per branch. Required columns: <b>Loan Account No.</b> and <b>Name of Borrower</b>. Optional: <b>Gross Wt</b>, <b>Net Wt</b> for original appraisal data.</div>
-    <div class="card">
-      <div class="card-title">Branch & Session Details</div>
-      <div class="form-grid">
-        <div class="form-group"><label>Branch Name *</label><input id="up-bname" placeholder="e.g. Mydukur Branch"></div>
-        <div class="form-group"><label>Branch Code *</label><input id="up-bcode" placeholder="e.g. 10401"></div>
-        <div class="form-group"><label>Regional Office</label><input id="up-ro" value="Kadapa"></div>
-        <div class="form-group"><label>Quarter</label>
-          <select id="up-quarter">
-            <option>January-March 2026</option><option>April-June 2026</option>
-            <option>July-September 2026</option><option>October-December 2026</option>
-            <option>January-March 2027</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Ref. No.</label><input id="up-refno" placeholder="Branch reference no."></div>
-        <div class="form-group"><label>Date of Visit</label><input id="up-date" type="date"></div>
-        <div class="form-group"><label>Scale Expiry Date</label><input id="up-scale" type="date"></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Import Excel File</div>
+async function showBranchDetail(code){
+  const b=(await dbGet('gl-branches')||{})[code]||{};
+  const accsObj=await dbGet('gl-accounts/'+code)||{};
+  const accs=Object.values(accsObj);
+  const done=accs.filter(a=>a.status==='ok').length;
+  const flag=accs.filter(a=>a.status==='flagged').length;
+  const pend=accs.filter(a=>a.status==='pending').length;
+  openSheet(b.name,[
+    {icon:'📊',color:'#EFF6FF',label:`${done} Verified, ${flag} Flagged, ${pend} Pending`,sub:`Total: ${accs.length} accounts`},
+    {icon:'📄',color:C_greenBg,label:'Generate Report',sub:'Print Annexure II PDF',fn:`generateReport('${code}')`},
+  ]);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN — UPLOAD
+// ═══════════════════════════════════════════════════════════
+function renderUploadPage(){
+  const qOpts=QUARTERS.map(q=>`<option value="${q.value}">${q.label}</option>`).join('');
+  document.getElementById('pg-upload').innerHTML=`
+    <div class="sec-head">Branch Details</div>
+    <div class="card"><div class="card-body">
+      <div class="f-group"><label>Branch Name *</label>
+        <input id="up-bname" placeholder="e.g. Mydukur Branch"></div>
+      <div class="f-group"><label>Branch Code *</label>
+        <input id="up-bcode" placeholder="e.g. 10401" inputmode="numeric"></div>
+      <div class="f-group"><label>Regional Office</label>
+        <input id="up-ro" value="Kadapa"></div>
+      <div class="f-group"><label>Quarter</label>
+        <select id="up-quarter">${qOpts}</select></div>
+      <div class="f-group"><label>Ref. No.</label>
+        <input id="up-refno" placeholder="Branch reference no."></div>
+      <div class="f-group"><label>Date of Visit</label>
+        <input id="up-date" type="date"></div>
+      <div class="f-group"><label>Scale Expiry Date</label>
+        <input id="up-scale" type="date"></div>
+      <div class="f-group"><label>Appraiser Name</label>
+        <input id="up-app" placeholder="Gold appraiser name"></div>
+      <div class="f-group"><label>Mobile</label>
+        <input id="up-mob" inputmode="tel" placeholder="10-digit mobile"></div>
+    </div></div>
+    <div class="sec-head">Import Excel File</div>
+    <div class="card"><div class="card-body">
       <div class="upload-zone" onclick="document.getElementById('up-file').click()">
         <div class="uz-icon">📂</div>
-        <p><strong>Click to select Excel file</strong></p>
-        <p style="margin-top:4px">.xlsx / .xls formats supported</p>
-        <input id="up-file" type="file" accept=".xlsx,.xls" style="display:none" onchange="handleExcelUpload(this)">
+        <p><strong>Tap to select Excel file</strong><br>.xlsx / .xls supported</p>
+        <input id="up-file" type="file" accept=".xlsx,.xls" style="display:none" onchange="handleExcel(this)">
       </div>
-      <div id="up-import-msg" style="margin-top:10px"></div>
-      <div class="divider"></div>
-      <div class="row" style="margin-bottom:10px">
-        <div class="form-group flex-1"><label>Manual — Account No.</label><input id="up-macno" placeholder="Loan Account No."></div>
-        <div class="form-group flex-1"><label>Manual — Borrower Name</label><input id="up-mbname" placeholder="Name of Borrower"></div>
-        <button class="btn btn-outline btn-sm" style="margin-top:18px" onclick="addManualAccount()">+ Add</button>
-      </div>
-      <div id="up-preview" style="margin-top:6px"></div>
-    </div>
-    <button class="btn btn-gold" style="width:100%;padding:12px;font-size:14px;margin-top:4px" onclick="saveBranchUpload()">💾 Save Branch Data to Database</button>
-    <div id="up-save-msg" style="margin-top:10px"></div>`;
+      <div id="up-msg" style="margin-top:10px"></div>
+    </div></div>
+    <div id="up-save-msg" style="margin-bottom:8px"></div>
+    <button class="btn btn-gold" onclick="saveBranch()" style="margin-bottom:20px">💾 Save Branch Data</button>`;
   document.getElementById('up-date').value=new Date().toISOString().split('T')[0];
 }
 
-function handleExcelUpload(inp){
-  const file=inp.files[0];if(!file)return;
+function handleExcel(inp){
+  const file=inp.files[0]; if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
     try{
       const wb=XLSX.read(e.target.result,{type:'binary'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-      if(!rows.length){showMsg('up-import-msg','No data found','warn');return}
+      if(!rows.length){showMsg('up-msg','No data found','warn');return}
       const keys=Object.keys(rows[0]);
       const fc=cs=>keys.find(k=>cs.some(c=>k.toLowerCase().includes(c.toLowerCase())));
       const acCol=fc(['loan account','account no','acc no','loan no']);
-      const bnCol=fc(['borrower','name of','customer name','name']);
+      const bnCol=fc(['borrower','name of','customer name']);
       const ogCol=fc(['gross wt','gross weight','orig gross']);
       const onCol=fc(['net wt','net weight','orig net']);
-      if(!acCol&&!bnCol){showMsg('up-import-msg','Cannot detect columns. Headers found: '+keys.join(', '),'warn');return}
-      _uploadedAccts=rows.map((r,i)=>({
+      if(!acCol&&!bnCol){showMsg('up-msg','Cannot detect columns. Need "Loan Account No." and "Name of Borrower"','warn');return}
+      _uploadAccs=rows.map((r,i)=>({
         sl:i+1,acno:String(r[acCol]||'').trim(),bname:String(r[bnCol]||'').trim(),
         og:ogCol&&r[ogCol]!==''?parseFloat(r[ogCol])||'':'',
         on_:onCol&&r[onCol]!==''?parseFloat(r[onCol])||'':'',
         rg:'',rn:'',purity:'NO',purity_detail:'',passcard:'YES',tally:'YES',
         appraiser2:'',action:'',status:'pending',not_verified_reason:''
       })).filter(a=>a.acno||a.bname);
-      showMsg('up-import-msg','✓ '+_uploadedAccts.length+' accounts loaded from '+file.name,'ok');
-      renderUploadPreview();
-    }catch(err){showMsg('up-import-msg','Error: '+err.message,'warn')}
+      showMsg('up-msg',`✅ ${_uploadAccs.length} accounts loaded from ${file.name}`,'ok');
+    }catch(err){showMsg('up-msg','Error: '+err.message,'warn')}
   };
   reader.readAsBinaryString(file);
 }
 
-function addManualAccount(){
-  const acno=document.getElementById('up-macno').value.trim();
-  const bname=document.getElementById('up-mbname').value.trim();
-  if(!acno&&!bname){alert('Enter at least one field.');return}
-  _uploadedAccts.push({sl:_uploadedAccts.length+1,acno,bname,og:'',on_:'',rg:'',rn:'',
-    purity:'NO',purity_detail:'',passcard:'YES',tally:'YES',appraiser2:'',action:'',
-    status:'pending',not_verified_reason:''});
-  document.getElementById('up-macno').value='';
-  document.getElementById('up-mbname').value='';
-  renderUploadPreview();
-}
-
-function renderUploadPreview(){
-  const el=document.getElementById('up-preview');
-  if(!_uploadedAccts.length){el.innerHTML='';return}
-  const show=_uploadedAccts.slice(0,8);
-  el.innerHTML=`<p style="font-size:11px;color:var(--text2);margin-bottom:6px"><b>${_uploadedAccts.length}</b> accounts loaded — preview (first 8):</p>
-    <table class="tbl" style="font-size:11px"><thead><tr><th>Sl</th><th>Account No.</th><th>Borrower</th></tr></thead>
-    <tbody>${show.map(a=>`<tr><td>${a.sl}</td><td style="font-family:monospace">${a.acno||'—'}</td><td>${a.bname||'—'}</td></tr>`).join('')}</tbody></table>
-    ${_uploadedAccts.length>8?`<p style="font-size:10px;color:var(--gray);margin-top:4px">...and ${_uploadedAccts.length-8} more</p>`:''}`;
-}
-
-async function saveBranchUpload(){
+async function saveBranch(){
   const name=document.getElementById('up-bname').value.trim();
   const code=document.getElementById('up-bcode').value.trim();
-  if(!name||!code){alert('Branch Name and Branch Code are required.');return}
-  if(!_uploadedAccts.length){alert('Please upload/add accounts first.');return}
-  showMsg('up-save-msg','Saving to database...','info');
-  const branchData={name,code,
-    ro:document.getElementById('up-ro').value,
-    quarter:document.getElementById('up-quarter').value,
+  if(!name||!code){showMsg('up-save-msg','Branch Name and Code are required','warn');return}
+  if(!_uploadAccs.length){showMsg('up-save-msg','Please import Excel file first','warn');return}
+  showMsg('up-save-msg','Saving...','info');
+  const q=document.getElementById('up-quarter').value;
+  const qd=QUARTERS.find(x=>x.value===q)||QUARTERS[0];
+  await dbSet('gl-branches/'+code,{
+    name,code,ro:document.getElementById('up-ro').value,
+    quarter:q,quarter_start:qd.start,quarter_end:qd.end,
     refno:document.getElementById('up-refno').value,
     date:document.getElementById('up-date').value,
     scale:document.getElementById('up-scale').value,
-  };
-  await dbSet('gl-branches/'+code,branchData);
-  // Save accounts as object keyed by sl
+    appraiser:document.getElementById('up-app').value,
+    mobile:document.getElementById('up-mob').value,
+  });
   const accsObj={};
-  _uploadedAccts.forEach(a=>{accsObj[a.sl]=a});
+  _uploadAccs.forEach(a=>accsObj[a.sl]=a);
   await dbSet('gl-accounts/'+code,accsObj);
-  _uploadedAccts=[];
-  document.getElementById('up-file').value='';
-  renderUploadPreview();
-  showMsg('up-save-msg','✓ '+name+' ('+code+') uploaded — '+Object.keys(accsObj).length+' accounts saved to database','ok');
+  _uploadAccs=[];
+  showMsg('up-save-msg',`✅ ${name} saved — ${Object.keys(accsObj).length} accounts`,'ok');
+  // also create credential suggestion
 }
 
-// ── BRANCHES ──
-async function renderBranches(){
-  const el=document.getElementById('s-branches');if(!el)return;
-  el.innerHTML=`<div class="loading">Loading...</div>`;
+// ═══════════════════════════════════════════════════════════
+//  ADMIN — BRANCHES (manage + credentials)
+// ═══════════════════════════════════════════════════════════
+async function renderAdminBranches(){
+  const el=document.getElementById('pg-accounts');
+  el.innerHTML=`<div class="loading-center"><div class="spinner"></div></div>`;
   const branches=await dbGet('gl-branches')||{};
+  const creds=await dbGet('gl-creds')||{};
   const codes=Object.keys(branches);
-  if(!codes.length){el.innerHTML=`<div class="section-header"><h2>Manage Branches</h2></div><div class="alert alert-warn">No branches uploaded yet.</div>`;return}
+
   el.innerHTML=`
-    <div class="section-header"><h2>Manage Branches (${codes.length})</h2></div>
-    <div class="card" style="padding:0;overflow:hidden">
-      <table class="tbl">
-        <thead><tr><th>Branch Name</th><th>Code</th><th>Quarter</th><th>Date</th><th>RO</th><th>Actions</th></tr></thead>
-        <tbody>${codes.map(c=>{const b=branches[c];return`
-          <tr>
-            <td><b>${b.name}</b></td>
-            <td style="font-family:monospace">${c}</td>
-            <td style="font-size:11px">${b.quarter||'—'}</td>
-            <td style="font-size:11px">${b.date||'—'}</td>
-            <td style="font-size:11px">${b.ro||'Kadapa'}</td>
-            <td><button class="btn btn-red btn-sm" onclick="deleteBranch('${c}','${b.name}')">Delete</button></td>
-          </tr>`}).join('')}
-        </tbody>
-      </table>
+    <div class="sec-head">Credentials</div>
+    <div class="card"><div class="card-body">
+      <div class="alert alert-info">ℹ️ Create login for each branch officer. Share only at branch visit.</div>
+      ${codes.length?`
+      <div class="f-group"><label>Assign Branch</label>
+        <select id="cr-br">${codes.map(c=>`<option value="${c}">${branches[c].name} (${c})</option>`).join('')}</select></div>
+      <div class="f-group"><label>User ID</label><input id="cr-uid" placeholder="e.g. BM10401"></div>
+      <div class="f-group"><label>Password</label><input id="cr-pwd" placeholder="e.g. Branch@2026"></div>
+      <button class="btn btn-gold btn-sm" onclick="createCred()" style="width:100%">+ Create Credential</button>`
+      :'<p style="color:var(--gray);font-size:12px">Upload branch data first.</p>'}
+    </div></div>
+
+    <div class="sec-head">Active Credentials</div>
+    <div class="card">
+      ${!Object.keys(creds).length
+        ?'<div class="card-body"><p style="color:var(--gray);font-size:12px">No credentials yet.</p></div>'
+        :Object.entries(creds).map(([uid,c])=>`
+          <div class="branch-item">
+            <div class="branch-icon" style="background:${c.active?'var(--greenBg)':'var(--grayL)'}">🔑</div>
+            <div style="flex:1;min-width:0">
+              <div class="branch-name">${uid}</div>
+              <div class="branch-meta">${c.branch_name} · ${c.branch_code}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+              <span class="badge ${c.active?'badge-ok':'badge-gray'}">${c.active?'Active':'Disabled'}</span>
+              <div style="display:flex;gap:5px">
+                <button onclick="toggleCred('${uid}',${!c.active})" style="font-size:10px;padding:5px 9px;border:1px solid var(--border);border-radius:7px;background:white;cursor:pointer">${c.active?'Disable':'Enable'}</button>
+                <button onclick="showCredCard('${uid}')" style="font-size:10px;padding:5px 9px;border:none;border-radius:7px;background:var(--navy);color:white;cursor:pointer">Card</button>
+              </div>
+            </div>
+          </div>`).join('')}
+    </div>
+
+    <div class="sec-head">Uploaded Branches</div>
+    <div class="card">
+      ${!codes.length?'<div class="card-body"><p style="color:var(--gray);font-size:12px">No branches yet.</p></div>'
+        :codes.map(c=>`
+          <div class="branch-item">
+            <div class="branch-icon">🏦</div>
+            <div style="flex:1;min-width:0">
+              <div class="branch-name">${branches[c].name}</div>
+              <div class="branch-meta">${c} · ${branches[c].quarter||'—'}</div>
+            </div>
+            <button onclick="deleteBranch('${c}','${branches[c].name}')"
+              style="padding:8px 12px;background:var(--redBg);color:var(--red);border:none;
+              border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">Delete</button>
+          </div>`).join('')}
     </div>`;
 }
 
-async function deleteBranch(code,name){
-  if(!confirm('Delete branch '+name+' ('+code+') and ALL its account data? This cannot be undone.'))return;
-  await dbRemove('gl-branches/'+code);
-  await dbRemove('gl-accounts/'+code);
-  renderBranches();
-}
-
-// ── CREDENTIALS ──
-async function renderCreds(){
-  const el=document.getElementById('s-creds');if(!el)return;
-  const creds=await dbGet('gl-creds')||{};
-  const branches=await dbGet('gl-branches')||{};
-  const brCodes=Object.keys(branches);
-  el.innerHTML=`
-    <div class="section-header"><h2>Branch Officer Credentials</h2></div>
-    <div class="alert alert-info">ℹ️ Create a User ID and Password for each branch officer. <b>Share credentials only at the time of branch visit.</b> Each officer can access only their assigned branch.</div>
-    <div class="card">
-      <div class="card-title">Create New Credential</div>
-      ${!brCodes.length?'<div class="alert alert-warn">Upload branch data first before creating credentials.</div>':`
-      <div class="form-grid" style="margin-bottom:12px">
-        <div class="form-group"><label>Assign Branch *</label>
-          <select id="cr-branch">
-            ${brCodes.map(c=>`<option value="${c}">${branches[c].name} (${c})</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group"><label>User ID *</label><input id="cr-uid" placeholder="e.g. BM10401"></div>
-        <div class="form-group"><label>Password *</label><input id="cr-pwd" placeholder="e.g. Mydukur@2026"></div>
-        <div class="form-group" style="justify-content:flex-end;padding-top:18px">
-          <button class="btn btn-gold" onclick="createCred()">+ Create Credential</button>
-        </div>
-      </div>`}
-    </div>
-    <div class="card">
-      <div class="card-title">Active Credentials (${Object.keys(creds).length})</div>
-      ${!Object.keys(creds).length?'<p style="font-size:12px;color:var(--gray)">No credentials created yet.</p>':`
-      <table class="tbl">
-        <thead><tr><th>User ID</th><th>Branch</th><th>Code</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody>${Object.entries(creds).map(([uid,c])=>`
-          <tr>
-            <td style="font-family:monospace;font-weight:600">${uid}</td>
-            <td>${c.branchName}</td>
-            <td style="font-family:monospace">${c.branchCode}</td>
-            <td>${c.active?'<span class="badge badge-ok">Active</span>':'<span class="badge badge-gray">Disabled</span>'}</td>
-            <td style="display:flex;gap:6px;flex-wrap:wrap">
-              <button class="btn btn-outline btn-sm" onclick="toggleCred('${uid}',${!c.active})">${c.active?'Disable':'Enable'}</button>
-              <button class="btn btn-red btn-sm" onclick="deleteCred('${uid}')">Delete</button>
-              <button class="btn btn-primary btn-sm" onclick="showCredCard('${uid}')">Show Card</button>
-            </td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`}
-    </div>
-    <div id="cred-card-wrap" style="margin-top:12px"></div>`;
-}
-
 async function createCred(){
-  const brCode=document.getElementById('cr-branch').value;
-  const uid=document.getElementById('cr-uid').value.trim();
-  const pwd=document.getElementById('cr-pwd').value.trim();
-  if(!uid||!pwd){alert('User ID and Password are required.');return}
-  if(uid===ADMIN_ID){alert('This User ID is reserved.');return}
+  const brCode=document.getElementById('cr-br')?.value;
+  const uid=document.getElementById('cr-uid')?.value.trim();
+  const pwd=document.getElementById('cr-pwd')?.value.trim();
+  if(!uid||!pwd){alert('Fill all fields');return}
   const branches=await dbGet('gl-branches')||{};
-  await dbSet('gl-creds/'+uid,{password:pwd,branchCode:brCode,branchName:branches[brCode]?.name||brCode,active:true});
-  renderCreds();
+  await dbSet('gl-creds/'+uid,{password:pwd,branch_code:brCode,branch_name:branches[brCode]?.name||brCode,active:true});
+  renderAdminBranches();
 }
 
 async function toggleCred(uid,active){
   await dbSet('gl-creds/'+uid+'/active',active);
-  renderCreds();
-}
-
-async function deleteCred(uid){
-  if(!confirm('Delete credential for '+uid+'?'))return;
-  await dbRemove('gl-creds/'+uid);
-  renderCreds();
+  renderAdminBranches();
 }
 
 async function showCredCard(uid){
   const creds=await dbGet('gl-creds')||{};
   const c=creds[uid];if(!c)return;
-  const wrap=document.getElementById('cred-card-wrap');
-  wrap.innerHTML=`
-    <div class="cred-card">
-      <div style="text-align:center;margin-bottom:14px">
-        <div style="font-size:24px">🏅</div>
-        <div style="font-size:14px;font-weight:700;margin-top:4px">GL Reappraisal Pro</div>
-        <div style="font-size:10px;opacity:.6">Union Bank of India · RO Kadapa</div>
-      </div>
-      <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px;margin-bottom:10px">
-        <div style="font-size:10px;opacity:.6;margin-bottom:2px">Branch</div>
-        <div style="font-size:14px;font-weight:700">${c.branchName}</div>
-        <div style="font-size:11px;opacity:.7">Code: ${c.branchCode}</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <div style="background:rgba(201,151,26,.2);border-radius:8px;padding:10px;border:1px solid rgba(201,151,26,.3)">
-          <div style="font-size:9px;color:var(--gold-light);font-weight:600;margin-bottom:3px">USER ID</div>
-          <div style="font-size:16px;font-weight:700;font-family:monospace;color:white">${uid}</div>
+  openSheet('Login Card',[
+    {icon:'🏅',color:C_greenBg,label:'GL Reappraisal Pro',sub:'Union Bank of India · RO Kadapa'},
+  ]);
+  // Inject cred card into sheet
+  setTimeout(()=>{
+    const body=document.getElementById('sheet-body');
+    body.innerHTML+=`
+      <div class="cred-card" style="margin:12px 16px">
+        <div style="text-align:center;margin-bottom:12px">
+          <div style="font-size:24px">🏅</div>
+          <div style="font-weight:700;font-size:15px;margin-top:4px">GL Reappraisal Pro</div>
+          <div style="font-size:10px;opacity:.6">Union Bank of India · RO Kadapa</div>
         </div>
-        <div style="background:rgba(201,151,26,.2);border-radius:8px;padding:10px;border:1px solid rgba(201,151,26,.3)">
-          <div style="font-size:9px;color:var(--gold-light);font-weight:600;margin-bottom:3px">PASSWORD</div>
-          <div style="font-size:16px;font-weight:700;font-family:monospace;color:white">${c.password}</div>
+        <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px;margin-bottom:10px;text-align:center">
+          <div style="font-size:10px;opacity:.6">Branch</div>
+          <div style="font-weight:700;font-size:14px">${c.branch_name}</div>
+          <div style="font-size:11px;opacity:.6">Code: ${c.branch_code}</div>
         </div>
-      </div>
-      <div style="text-align:center;font-size:9px;opacity:.4">Share only at time of branch visit · For internal use only</div>
-    </div>
-    <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="document.getElementById('cred-card-wrap').innerHTML=''">Close Card</button>`;
+        <div class="cred-grid">
+          <div class="cred-chip"><div class="cred-chip-label">USER ID</div><div class="cred-chip-val">${uid}</div></div>
+          <div class="cred-chip"><div class="cred-chip-label">PASSWORD</div><div class="cred-chip-val">${c.password}</div></div>
+        </div>
+        <div style="text-align:center;font-size:9px;opacity:.4;margin-top:10px">Share only at time of branch visit</div>
+      </div>`;
+  },100);
 }
 
-// ── ADMIN REPORT ──
+async function deleteBranch(code,name){
+  if(!confirm(`Delete ${name} and ALL its data?`))return;
+  await dbDel('gl-branches/'+code);
+  await dbDel('gl-accounts/'+code);
+  renderAdminBranches();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN — REPORT
+// ═══════════════════════════════════════════════════════════
 async function renderAdminReport(){
-  const el=document.getElementById('s-report');if(!el)return;
-  el.innerHTML=`<div class="loading">Loading branches...</div>`;
+  const el=document.getElementById('pg-report');
   const branches=await dbGet('gl-branches')||{};
   const codes=Object.keys(branches);
-  if(!codes.length){el.innerHTML=`<div class="alert alert-warn">No branches available.</div>`;return}
+  if(!codes.length){
+    el.innerHTML=`<div class="empty"><div class="e-icon">📄</div>
+      <div class="e-title">No Branches</div><div class="e-sub">Upload data first</div></div>`;
+    return;
+  }
+  const qOpts=codes.map(c=>`<option value="${c}">${branches[c].name} (${c})</option>`).join('');
   el.innerHTML=`
-    <div class="section-header"><h2>Generate Annexure II</h2></div>
-    <div class="card">
-      <div class="card-title">Select Branch</div>
-      <div class="row">
-        <div class="form-group flex-1"><label>Branch</label>
-          <select id="rpt-br-sel">
-            ${codes.map(c=>`<option value="${c}">${branches[c].name} (${c})</option>`).join('')}
-          </select>
-        </div>
-        <button class="btn btn-primary" style="margin-top:18px" onclick="loadBranchReport()">Load Report</button>
-      </div>
-    </div>
-    <div id="rpt-sig-panel" style="display:none" class="card">
-      <div class="card-title">Signatory Details</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-        <div><p style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px">Branch Official</p>
-          <div class="form-group"><label>Name</label><input id="sg-bo-name" placeholder="Name"></div>
-          <div class="form-group"><label>PF No.</label><input id="sg-bo-pf" placeholder="PF No."></div></div>
-        <div><p style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px">Branch in Charge</p>
-          <div class="form-group"><label>Name</label><input id="sg-bic-name" placeholder="Name"></div>
-          <div class="form-group"><label>PF No.</label><input id="sg-bic-pf" placeholder="PF No."></div></div>
-        <div><p style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px">Gold Appraiser</p>
-          <div class="form-group"><label>Name</label><input id="sg-app-name" placeholder="Appraiser Name"></div></div>
-        <div><p style="font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px">Nominated Officer</p>
-          <div class="form-group"><label>Name</label><input id="sg-nom-name" placeholder="Name"></div>
-          <div class="form-group"><label>PF No.</label><input id="sg-nom-pf" placeholder="PF No."></div></div>
-      </div>
-      <div style="margin-top:12px;display:flex;gap:10px">
-        <button class="btn btn-primary" onclick="doPrint('admin')">🖨️ Print Annexure II (Landscape)</button>
-        <button class="btn btn-outline" onclick="refreshAndPrint()">🔄 Refresh & Print</button>
-      </div>
-    </div>
-    <div id="screen-report" class="screen active" style="padding:0"></div>`;
+    <div class="sec-head">Generate Annexure II</div>
+    <div class="card"><div class="card-body">
+      <div class="f-group"><label>Select Branch</label><select id="rpt-br">${qOpts}</select></div>
+      <button class="btn btn-navy btn-sm" onclick="loadReportData()" style="width:100%;margin-bottom:0">Load Report Data</button>
+    </div></div>
+    <div id="rpt-sig-panel" style="display:none">
+      <div class="sec-head">Signatory Details</div>
+      <div class="card"><div class="card-body">
+        <div class="f-group"><label>Branch Official Name</label><input id="sg-bo-name" placeholder="Name"></div>
+        <div class="f-group"><label>Branch Official PF No.</label><input id="sg-bo-pf" placeholder="PF No."></div>
+        <div class="f-group"><label>Branch in Charge Name</label><input id="sg-bic-name" placeholder="Name"></div>
+        <div class="f-group"><label>Branch in Charge PF No.</label><input id="sg-bic-pf" placeholder="PF No."></div>
+        <div class="f-group"><label>Nominated Officer Name</label><input id="sg-nom-name" placeholder="Name"></div>
+        <div class="f-group"><label>Nominated Officer PF No.</label><input id="sg-nom-pf" placeholder="PF No."></div>
+      </div></div>
+      <button class="btn btn-red" onclick="printReport()" style="margin-bottom:8px">🖨️ Print / Save PDF (Landscape A4)</button>
+      <div id="rpt-preview"></div>
+    </div>`;
 }
 
-async function loadBranchReport(){
-  const code=document.getElementById('rpt-br-sel').value;
+async function loadReportData(){
+  const code=document.getElementById('rpt-br').value;
   const branches=await dbGet('gl-branches')||{};
   const b=branches[code];
   const accsObj=await dbGet('gl-accounts/'+code)||{};
   const accs=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
+  if(b.appraiser) document.getElementById('sg-bo-name').value=b.appraiser;
   document.getElementById('rpt-sig-panel').style.display='block';
-  if(b.appraiser) document.getElementById('sg-app-name').value=b.appraiser||'';
-  buildAnnexureII(b,accs,'screen-report');
+  buildAnnexurePreview(b,accs,'rpt-preview');
 }
 
-async function refreshAndPrint(){
-  await loadBranchReport();
-  setTimeout(()=>doPrint('admin'),600);
+async function generateReport(code){
+  closeSheet();
+  showPage('report',document.getElementById('nav-report'));
+  setTimeout(async()=>{
+    document.getElementById('rpt-br').value=code;
+    await loadReportData();
+  },200);
 }
 
-// ═══════════════════════════════════════════════
-//  ████████  BRANCH APP  ████████
-// ═══════════════════════════════════════════════
-function buildBranchApp(){
-  buildTabs([
-    {id:'b-accounts',label:'📋 Accounts'},
-    {id:'b-entry',label:'✏️ Entry Form'},
-    {id:'b-report',label:'📄 Report'},
-  ]);
-  buildScreens(['b-accounts','b-entry','b-report']);
-  document.querySelectorAll('.nav-tab').forEach((t,i)=>{
-    if(i===0)t.addEventListener('click',renderBranchAccounts);
-    if(i===2)t.addEventListener('click',renderBranchReport);
-  });
-  loadBranchAccounts();
-}
-
+// ═══════════════════════════════════════════════════════════
+//  BRANCH — ACCOUNTS
+// ═══════════════════════════════════════════════════════════
 async function loadBranchAccounts(){
   const accsObj=await dbGet('gl-accounts/'+CUR.branchCode)||{};
-  _brAccounts=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
-  renderBranchAccounts();
+  _brAccs=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
+  renderBranchAccountList();
+  updatePendingBadge();
 }
 
-function renderBranchAccounts(){
-  const el=document.getElementById('b-accounts');if(!el)return;
-  if(!_brAccounts.length){
-    el.innerHTML=`<div class="alert alert-warn">⚠️ No accounts loaded for your branch. Contact RO Kadapa to upload your branch data.</div>`;return;
+function updatePendingBadge(){
+  const pend=_brAccs.filter(a=>a.status==='pending').length;
+  const b=document.getElementById('pending-badge');
+  if(b){b.style.display=pend>0?'flex':'none';b.textContent=pend>9?'9+':pend}
+}
+
+function renderBranchAccountList(){
+  const el=document.getElementById('pg-accounts');
+  if(!_brAccs.length){
+    el.innerHTML=`<div class="empty"><div class="e-icon">📋</div>
+      <div class="e-title">No Accounts</div>
+      <div class="e-sub">Contact RO Kadapa to upload your branch data</div>
+      <button class="btn btn-navy btn-sm" onclick="loadBranchAccounts()" style="margin-top:8px">⟳ Refresh</button></div>`;
+    return;
   }
-  const done=_brAccounts.filter(a=>a.status==='ok').length;
-  const flag=_brAccounts.filter(a=>a.status==='flagged').length;
-  const notv=_brAccounts.filter(a=>a.status==='not_verified').length;
-  const pend=_brAccounts.filter(a=>a.status==='pending').length;
-  const pct=_brAccounts.length>0?Math.round((done+flag+notv)/_brAccounts.length*100):0;
+  const done=_brAccs.filter(a=>a.status==='ok').length;
+  const flag=_brAccs.filter(a=>a.status==='flagged').length;
+  const pend=_brAccs.filter(a=>a.status==='pending').length;
+  const pct=Math.round((done+flag)/(_brAccs.length||1)*100);
+  const filtered=_brAccs.filter(a=>{
+    const q=_search.toLowerCase();
+    const ms=!q||a.acno.toLowerCase().includes(q)||a.bname.toLowerCase().includes(q);
+    const mf=_filterStatus==='all'||a.status===_filterStatus;
+    return ms&&mf;
+  });
   el.innerHTML=`
-    <div class="section-header"><h2>${CUR.branchName} — Accounts</h2>
-      <button class="btn btn-outline btn-sm" onclick="loadBranchAccounts()">⟳ Refresh</button></div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="lbl">Total</div><div class="num" style="color:var(--navy3)">${_brAccounts.length}</div></div>
-      <div class="stat-card"><div class="lbl">Verified</div><div class="num" style="color:var(--green)">${done}</div></div>
-      <div class="stat-card"><div class="lbl">Flagged</div><div class="num" style="color:var(--red)">${flag}</div></div>
-      <div class="stat-card"><div class="lbl">Pending</div><div class="num" style="color:var(--amber)">${pend}</div></div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
+      <div class="stat-card"><div class="stat-icon" style="background:rgba(11,30,61,.08)">📋</div>
+        <div><div class="stat-val" style="color:var(--navy3)">${_brAccs.length}</div><div class="stat-lbl">Total</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--greenBg)">✅</div>
+        <div><div class="stat-val" style="color:var(--green)">${done}</div><div class="stat-lbl">Verified</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--redBg)">⚠️</div>
+        <div><div class="stat-val" style="color:var(--red)">${flag}</div><div class="stat-lbl">Flagged</div></div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:var(--amberBg)">🕐</div>
+        <div><div class="stat-val" style="color:var(--amber)">${pend}</div><div class="stat-lbl">Pending</div></div></div>
     </div>
-    <div class="prog-wrap">
-      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${flag>0?'var(--amber)':'var(--green)'}"></div></div>
-      <div class="prog-label"><span>Completion Progress</span><span>${pct}%</span></div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${flag>0?'var(--amber)':'var(--green)'}"></div></div>
+    <div style="font-size:11px;color:var(--gray);text-align:right;margin-bottom:12px">${pct}% complete</div>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input placeholder="Search account / borrower..." value="${_search}"
+        oninput="_search=this.value;renderBranchAccountList()">
+    </div>
+    <div class="filter-chips">
+      ${[['all','All','active-navy'],['pending','Pending','active-gray'],
+         ['ok','Verified','active-ok'],['flagged','Flagged','active-flag'],
+         ['not_verified','Not Verified','active-warn']]
+        .map(([v,l,cls])=>`<div class="fchip ${_filterStatus===v?cls:''}" onclick="_filterStatus='${v}';renderBranchAccountList()">${l}</div>`)
+        .join('')}
     </div>
     <div class="card" style="padding:0;overflow:hidden">
-      <table class="tbl">
-        <thead><tr><th>Sl</th><th>Account No.</th><th>Borrower Name</th><th>Status</th><th>Action</th></tr></thead>
-        <tbody>${_brAccounts.map((a,i)=>`
-          <tr class="${a.status==='flagged'?'flagged':''}">
-            <td>${a.sl}</td>
-            <td style="font-family:monospace;font-size:11px">${a.acno||'—'}</td>
-            <td>${a.bname||'—'}</td>
-            <td>${a.status==='ok'?'<span class="badge badge-ok">✓ Verified</span>':a.status==='flagged'?'<span class="badge badge-flag">⚠ Flagged</span>':a.status==='not_verified'?'<span class="badge badge-warn">✗ N/V</span>':'<span class="badge badge-gray">Pending</span>'}</td>
-            <td><button class="btn btn-outline btn-sm" onclick="openEntryAt(${i})">Edit</button></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
+      ${!filtered.length
+        ?'<div class="empty" style="min-height:120px"><div class="e-sub">No accounts found</div></div>'
+        :filtered.map((a,i)=>{
+          const bc=a.status==='ok'?'var(--green)':a.status==='flagged'?'var(--red)':a.status==='not_verified'?'var(--amber)':'var(--border)';
+          const bg=a.status==='ok'?'var(--greenBg)':a.status==='flagged'?'var(--redBg)':a.status==='not_verified'?'var(--amberBg)':'var(--grayL)';
+          const lb=a.status==='ok'?'✓':a.status==='flagged'?'⚠':a.status==='not_verified'?'✗':'#'+a.sl;
+          const dg=a.rg!==''&&a.rg!==null&&a.og!==''&&a.og!==null?parseFloat(a.rg)-parseFloat(a.og):null;
+          const dn=a.rn!==''&&a.rn!==null&&a.on_!==''&&a.on_!==null?parseFloat(a.rn)-parseFloat(a.on_):null;
+          const idx=_brAccs.findIndex(x=>x.sl===a.sl);
+          return `<div class="acct-item ${a.status==='flagged'?'flagged':''}" onclick="openEntry(${idx})">
+            <div class="acct-num" style="background:${bg};color:${bc}">${lb}</div>
+            <div style="flex:1;min-width:0">
+              <div class="acct-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.bname||'(No Name)'}</div>
+              <div class="acct-no">${a.acno||'No Account No.'}</div>
+              ${dg!==null||dn!==null?`<div style="display:flex;gap:4px;margin-top:4px">
+                ${dg!==null?`<span class="wt-chip ${Math.abs(dg)>0.2?'bad':''}">G:${dg.toFixed(3)}</span>`:''}
+                ${dn!==null?`<span class="wt-chip ${Math.abs(dn)>0.1?'bad':''}">N:${dn.toFixed(3)}</span>`:''}
+              </div>`:''}
+            </div>
+            <div class="acct-right">
+              <span class="badge ${a.status==='ok'?'badge-ok':a.status==='flagged'?'badge-flag':a.status==='not_verified'?'badge-warn':'badge-gray'}">
+                ${a.status==='ok'?'✓ Verified':a.status==='flagged'?'⚠ Flagged':a.status==='not_verified'?'✗ N/V':'Pending'}</span>
+              <div style="color:var(--gray);font-size:18px;margin-top:4px">›</div>
+            </div>
+          </div>`;
+        }).join('')}
     </div>`;
 }
 
-function openEntryAt(idx){
+// ═══════════════════════════════════════════════════════════
+//  BRANCH — ENTRY FORM
+// ═══════════════════════════════════════════════════════════
+function openEntry(idx){
   _brIdx=idx;
-  document.querySelectorAll('.nav-tab')[1].click();
-  setTimeout(()=>renderEntryFor(idx),100);
+  showPage('entry',document.getElementById('nav-entry'));
+  renderEntryForm();
 }
 
-function renderBranchEntry(){
-  const el=document.getElementById('b-entry');if(!el)return;
-  if(!_brAccounts.length){
-    el.innerHTML=`<div class="alert alert-warn">No accounts loaded. Contact RO Kadapa.</div>`;return;
+function renderEntryForm(){
+  const el=document.getElementById('pg-entry');
+  if(!_brAccs.length){
+    el.innerHTML=`<div class="empty"><div class="e-icon">✏️</div>
+      <div class="e-title">No Accounts</div></div>`;return;
   }
-  renderEntryFor(_brIdx);
-}
-
-function renderEntryFor(idx){
-  _brIdx=idx;
-  const el=document.getElementById('b-entry');if(!el)return;
-  const a=_brAccounts[idx];
+  const a=_brAccs[_brIdx];
+  const total=_brAccs.length;
   el.innerHTML=`
-    <!-- Account header card -->
-    <div style="background:var(--navy);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="color:white;font-weight:600;font-size:15px">${a.bname||'(No Name)'}</div>
-        <div style="color:rgba(255,255,255,.55);font-size:11px;font-family:monospace;margin-top:2px">${a.acno||'No Account No.'}</div>
+    <!-- Account header -->
+    <div class="card" style="background:var(--navy);border:none;margin-bottom:12px">
+      <div class="card-body" style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="color:white;font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.bname||'(No Name)'}</div>
+          <div style="color:rgba(255,255,255,.55);font-size:11px;font-family:monospace;margin-top:2px">${a.acno||'No Account No.'}</div>
+        </div>
+        <span class="badge ${a.status==='ok'?'badge-ok':a.status==='flagged'?'badge-flag':a.status==='not_verified'?'badge-warn':'badge-gray'}">${a.status==='ok'?'✓ Verified':a.status==='flagged'?'⚠ Flagged':a.status==='not_verified'?'✗ N/V':'Pending'}</span>
       </div>
-      <div>${a.status==='ok'?'<span class="badge badge-ok">✓ Verified</span>':a.status==='flagged'?'<span class="badge badge-flag">⚠ Flagged</span>':'<span class="badge badge-gray">Pending</span>'}</div>
     </div>
 
     <!-- Navigation -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <button class="btn btn-outline btn-sm" onclick="renderEntryFor(${idx-1})" ${idx===0?'disabled':''}>← Prev</button>
-      <div style="text-align:center">
-        <select class="form-group" style="padding:5px 10px;border:1px solid var(--border);border-radius:8px;font-size:11px" onchange="renderEntryFor(parseInt(this.value))">
-          ${_brAccounts.map((ac,i)=>`<option value="${i}" ${i===idx?'selected':''}>#${ac.sl} ${ac.bname||''} ${ac.status==='ok'?'✓':ac.status==='flagged'?'⚠':''}</option>`).join('')}
-        </select>
-        <div style="font-size:10px;color:var(--text2);margin-top:2px">${idx+1} of ${_brAccounts.length}</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <button onclick="navEntry(-1)" ${_brIdx===0?'disabled':''} style="width:44px;height:44px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:18px;cursor:pointer;flex-shrink:0;opacity:${_brIdx===0?.3:1}">‹</button>
+      <div onclick="showJumpSheet()" style="flex:1;background:white;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;text-align:center;cursor:pointer">
+        <div style="font-weight:600;font-size:13px;color:var(--navy)">Account ${_brIdx+1} of ${total}</div>
+        <div style="font-size:10px;color:var(--gray);margin-top:1px">Tap to jump</div>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="renderEntryFor(${idx+1})" ${idx===_brAccounts.length-1?'disabled':''}>Next →</button>
+      <button onclick="navEntry(1)" ${_brIdx===total-1?'disabled':''} style="width:44px;height:44px;border-radius:10px;border:1.5px solid var(--border);background:white;font-size:18px;cursor:pointer;flex-shrink:0;opacity:${_brIdx===total-1?.3:1}">›</button>
     </div>
 
-    <!-- Weights -->
-    <div class="card">
-      <div class="card-title">Weight Details</div>
-      <div class="wt-grid">
-        <div class="wt-box orig">
-          <h4>Original Appraisal (at sanction)</h4>
-          <div class="form-group" style="margin-bottom:10px">
-            <label>Gross Weight (gm)</label>
-            <input type="number" step="0.001" id="e-og" placeholder="0.000" value="${a.og!==''&&a.og!==null&&a.og!==undefined?a.og:''}" oninput="calcWtDiff();tryAutoCopy()">
-          </div>
-          <div class="form-group">
-            <label>Net Weight (gm)</label>
-            <input type="number" step="0.001" id="e-on" placeholder="0.000" value="${a.on_!==''&&a.on_!==null&&a.on_!==undefined?a.on_:''}" oninput="calcWtDiff();tryAutoCopy()">
-          </div>
-        </div>
+    <!-- Auto Copy Toggle -->
+    <div class="auto-toggle">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--green)">Auto-Copy Weight</div>
+        <div style="font-size:10px;color:var(--green);opacity:.7;margin-top:1px">Fills reappraisal from sanction automatically</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="auto-chk" ${_autoCopy?'checked':''} onchange="_autoCopy=this.checked">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
 
-        <!-- Auto-copy middle -->
-        <div class="autocopy-panel">
-          <div style="text-align:center">
-            <div style="font-size:9px;font-weight:700;color:var(--text2);margin-bottom:4px;text-transform:uppercase">Auto Copy</div>
-            <div id="ac-tog" class="autocopy-toggle" onclick="toggleACopy()" title="Auto-fill reappraisal weights from sanction when no discrepancy">
-              <div id="ac-knob" class="autocopy-knob"></div>
-            </div>
-            <div id="ac-lbl" style="font-size:9px;font-weight:700;color:var(--green);margin-top:3px">ON</div>
-          </div>
-          <button onclick="manualCopyWt()" class="btn btn-primary btn-sm" title="Copy sanction → reappraisal" style="padding:6px 10px;font-size:11px;text-align:center;width:100%">Copy →</button>
-          <div style="font-size:18px;color:var(--border)">⇒</div>
+    <!-- Weight Section -->
+    <div class="wt-section">
+      <h4>📌 At Sanction (Original Appraisal)</h4>
+      <div class="wt-row">
+        <div class="f-group" style="margin-bottom:0">
+          <label>Gross Wt (gm)</label>
+          <input type="number" step="0.001" id="e-og" placeholder="0.000"
+            value="${a.og!==''&&a.og!==null&&a.og!==undefined?a.og:''}"
+            oninput="calcDiff();tryAutoCopy()" inputmode="decimal">
         </div>
-
-        <div class="wt-box reapp">
-          <h4>Reappraisal (Today)</h4>
-          <div class="form-group" style="margin-bottom:10px">
-            <label>Gross Weight (gm)</label>
-            <input type="number" step="0.001" id="e-rg" placeholder="0.000" value="${a.rg!==''&&a.rg!==null&&a.rg!==undefined?a.rg:''}" oninput="clearACTint('e-rg');calcWtDiff()">
-          </div>
-          <div class="form-group">
-            <label>Net Weight (gm)</label>
-            <input type="number" step="0.001" id="e-rn" placeholder="0.000" value="${a.rn!==''&&a.rn!==null&&a.rn!==undefined?a.rn:''}" oninput="clearACTint('e-rn');calcWtDiff()">
-          </div>
-          <div id="copied-indicator" class="copied-indicator" style="${a.rg!==''&&a.rg===a.og?'display:block':'display:none'}">✓ Auto-filled from sanction</div>
+        <div class="f-group" style="margin-bottom:0">
+          <label>Net Wt (gm)</label>
+          <input type="number" step="0.001" id="e-on" placeholder="0.000"
+            value="${a.on_!==''&&a.on_!==null&&a.on_!==undefined?a.on_:''}"
+            oninput="calcDiff();tryAutoCopy()" inputmode="decimal">
         </div>
       </div>
-      <div id="wt-diff-result" style="display:none"></div>
     </div>
+
+    <button class="copy-btn" onclick="manualCopy()">⬇️ Copy to Reappraisal</button>
+
+    <div class="wt-section reapp">
+      <h4>🔍 Reappraisal (Today)</h4>
+      <div class="wt-row">
+        <div class="f-group" style="margin-bottom:0">
+          <label>Gross Wt (gm)</label>
+          <input type="number" step="0.001" id="e-rg" placeholder="0.000"
+            value="${a.rg!==''&&a.rg!==null&&a.rg!==undefined?a.rg:''}"
+            oninput="clearTint('e-rg');calcDiff()" inputmode="decimal"
+            style="${a.rg!==''&&a.rg!==null&&parseFloat(a.rg)===parseFloat(a.og)?'background:#F0FAF5':''}" >
+        </div>
+        <div class="f-group" style="margin-bottom:0">
+          <label>Net Wt (gm)</label>
+          <input type="number" step="0.001" id="e-rn" placeholder="0.000"
+            value="${a.rn!==''&&a.rn!==null&&a.rn!==undefined?a.rn:''}"
+            oninput="clearTint('e-rn');calcDiff()" inputmode="decimal"
+            style="${a.rn!==''&&a.rn!==null&&parseFloat(a.rn)===parseFloat(a.on_)?'background:#F0FAF5':''}">
+        </div>
+      </div>
+      <div class="copied-badge" id="copied-badge" style="${a.rg!==''&&parseFloat(a.rg)===parseFloat(a.og)?'display:block':'display:none'}">✓ Auto-filled from sanction weights</div>
+    </div>
+
+    <!-- Diff Result -->
+    <div id="diff-result" style="margin-bottom:10px"></div>
 
     <!-- Checklist -->
-    <div class="card">
+    <div class="card"><div class="card-body">
       <div class="card-title">Compliance Checklist</div>
-      <div class="toggle-group">
-        <div class="toggle-row">
-          <span>Difference in Purity?</span>
-          <div class="toggle-sw">
-            <button class="yes ${a.purity==='YES'?'active':''}" id="p-yes" onclick="setToggle('purity','yes')">YES</button>
-            <button class="no ${a.purity!=='YES'?'active':''}" id="p-no" onclick="setToggle('purity','no')">NO</button>
-          </div>
-        </div>
-        <div id="purity-detail-row" style="display:${a.purity==='YES'?'block':'none'}">
-          <div class="form-group" style="margin:6px 0"><label>Purity Difference Details</label>
-            <input id="e-pdetail" placeholder="e.g. Original 22K, found 20K" value="${a.purity_detail||''}"></div>
-        </div>
-        <div class="toggle-row">
-          <span>Pass Card inside cover?</span>
-          <div class="toggle-sw">
-            <button class="yes ${a.passcard!=='NO'?'active':''}" id="pc-yes" onclick="setToggle('passcard','yes')">YES</button>
-            <button class="no ${a.passcard==='NO'?'active':''}" id="pc-no" onclick="setToggle('passcard','no')">NO</button>
-          </div>
-        </div>
-        <div class="toggle-row">
-          <span>Loan App &amp; Pass Card tallying with jewellery?</span>
-          <div class="toggle-sw">
-            <button class="yes ${a.tally!=='NO'?'active':''}" id="t-yes" onclick="setToggle('tally','yes')">YES</button>
-            <button class="no ${a.tally==='NO'?'active':''}" id="t-no" onclick="setToggle('tally','no')">NO</button>
-          </div>
+      <div class="check-row">
+        <div class="check-row-label">Difference in Purity?</div>
+        <div class="yn-group">
+          <button class="yn-btn ${a.purity==='YES'?'yes-active':''}" id="p-yes" onclick="setTog('purity',true)">YES</button>
+          <button class="yn-btn ${a.purity!=='YES'?'no-active':''}" id="p-no" onclick="setTog('purity',false)">NO</button>
         </div>
       </div>
-    </div>
+      <div id="purity-detail-row" style="display:${a.purity==='YES'?'block':'none'};margin-bottom:8px">
+        <div class="f-group" style="margin-bottom:0">
+          <label>Purity Difference Details</label>
+          <input id="e-pdetail" value="${a.purity_detail||''}" placeholder="e.g. Original 22K, found 20K">
+        </div>
+      </div>
+      <div class="check-row">
+        <div class="check-row-label">Pass Card inside cover?</div>
+        <div class="yn-group">
+          <button class="yn-btn ${a.passcard!=='NO'?'yes-active':''}" id="pc-yes" onclick="setTog('passcard',true)">YES</button>
+          <button class="yn-btn ${a.passcard==='NO'?'no-active':''}" id="pc-no" onclick="setTog('passcard',false)">NO</button>
+        </div>
+      </div>
+      <div class="check-row">
+        <div class="check-row-label">Loan App &amp; Pass Card tallying with jewellery?</div>
+        <div class="yn-group">
+          <button class="yn-btn ${a.tally!=='NO'?'yes-active':''}" id="t-yes" onclick="setTog('tally',true)">YES</button>
+          <button class="yn-btn ${a.tally==='NO'?'no-active':''}" id="t-no" onclick="setTog('tally',false)">NO</button>
+        </div>
+      </div>
+    </div></div>
 
     <!-- Appraiser & Action -->
-    <div class="card">
-      <div class="card-title">Appraiser & Action Taken</div>
-      <div class="form-group" style="margin-bottom:12px">
-        <label>Name of Jewel Appraiser (conducted reappraisal)</label>
-        <input id="e-app" placeholder="Appraiser name" value="${a.appraiser2||''}">
-      </div>
-      <div class="form-group">
-        <label>Action Taken (if any discrepancy)</label>
-        <textarea id="e-action" rows="2" placeholder="e.g. Intimated RO Kadapa, NPA review initiated...">${a.action||''}</textarea>
-      </div>
+    <div class="card"><div class="card-body">
+      <div class="card-title">Appraiser & Action</div>
+      <div class="f-group"><label>Appraiser Name</label>
+        <input id="e-app" value="${a.appraiser2||''}" placeholder="Jewel appraiser name"></div>
+      <div class="f-group"><label>Action Taken (if discrepancy)</label>
+        <textarea id="e-action" rows="3" placeholder="e.g. Intimated RO Kadapa...">${a.action||''}</textarea></div>
+    </div></div>
+
+    <!-- Discrepancy Alert -->
+    <div id="disc-alert" style="display:none" class="alert alert-err">
+      ⚠️ Discrepancy detected — this account will be flagged. Fill Action Taken field.
     </div>
 
-    <!-- Alert if discrepancy -->
-    <div id="disc-alert" style="display:none" class="alert alert-warn">⚠ Discrepancy detected — this account will be FLAGGED. Please fill Action Taken field.</div>
-
-    <!-- Save buttons -->
-    <div style="display:flex;gap:10px;margin-bottom:10px">
-      <button id="save-next-btn" class="btn btn-green" style="flex:2;padding:11px;font-size:14px" onclick="saveEntry(true)">💾 Save &amp; Next →</button>
-      <button class="btn btn-primary" style="flex:1" onclick="saveEntry(false)">Save Only</button>
+    <!-- Save Buttons -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <button id="save-next-btn" class="btn btn-green" onclick="saveEntry(true)">💾 Save &amp; Next</button>
+      <button class="btn btn-navy" onclick="saveEntry(false)">Save Only</button>
     </div>
-    <button class="btn btn-outline" style="width:100%;color:var(--amber);border-color:var(--amber)" onclick="markNotVerified()">✗ Mark Not Verified</button>
-    <div id="save-msg" style="margin-top:10px"></div>`;
+    <button onclick="markNV()" style="width:100%;padding:13px;background:transparent;
+      color:var(--amber);border:1.5px solid var(--amber);border-radius:10px;
+      font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:4px">
+      ✗ Mark Not Verified</button>`;
 
-  // Set toggles state
-  _toggles={
-    purity:a.purity==='YES'?'yes':'no',
-    passcard:a.passcard==='NO'?'no':'yes',
-    tally:a.tally==='NO'?'no':'yes'
+  // Set toggle state from account
+  _toggles = {
+    purity: a.purity==='YES',
+    passcard: a.passcard!=='NO',
+    tally: a.tally!=='NO',
   };
-  calcWtDiff();
+  calcDiff();
 }
 
-// ── WEIGHT DIFF ──
-function calcWtDiff(){
+function navEntry(dir){
+  const next=_brIdx+dir;
+  if(next>=0&&next<_brAccs.length){_brIdx=next;renderEntryForm();}
+}
+
+function showJumpSheet(){
+  openSheet('Jump to Account',
+    _brAccs.map((a,i)=>({
+      icon: a.status==='ok'?'✅':a.status==='flagged'?'⚠️':a.status==='not_verified'?'❌':'⏳',
+      color: a.status==='ok'?C_greenBg:a.status==='flagged'?C_redBg:a.status==='not_verified'?'#FEF3C7':'#F3F4F6',
+      label:`#${a.sl} — ${a.bname||'(No Name)'}`,
+      sub: a.acno||'No Account No.',
+      fn:`closeSheet();_brIdx=${i};renderEntryForm()`,
+    }))
+  );
+}
+
+function setTog(type,val){
+  _toggles[type]=val;
+  const ids={purity:['p-yes','p-no'],passcard:['pc-yes','pc-no'],tally:['t-yes','t-no']};
+  const [yId,nId]=ids[type];
+  const yEl=document.getElementById(yId), nEl=document.getElementById(nId);
+  if(yEl){yEl.className='yn-btn '+(val?'yes-active':'');nEl.className='yn-btn '+(val?'':'no-active')}
+  if(type==='purity'){
+    const dr=document.getElementById('purity-detail-row');
+    if(dr)dr.style.display=val?'block':'none';
+  }
+  calcDiff();
+}
+
+function calcDiff(){
   const og=parseFloat(document.getElementById('e-og')?.value)||0;
   const on_=parseFloat(document.getElementById('e-on')?.value)||0;
   const rg=parseFloat(document.getElementById('e-rg')?.value)||0;
   const rn=parseFloat(document.getElementById('e-rn')?.value)||0;
-  const el=document.getElementById('wt-diff-result');if(!el)return;
-  if(!document.getElementById('e-rg')?.value&&!document.getElementById('e-og')?.value){el.style.display='none';return}
-  const dg=rg-og,dn=rn-on_;
-  const grossOk=Math.abs(dg)<=0.2,netOk=Math.abs(dn)<=0.1;
-  const pBad=_toggles.purity==='yes',pcBad=_toggles.passcard==='no',tBad=_toggles.tally==='no';
-  const allOk=grossOk&&netOk&&!pBad&&!pcBad&&!tBad;
-  el.style.display='flex';
+  const el=document.getElementById('diff-result'); if(!el)return;
+  const rgEl=document.getElementById('e-rg');
+  if(!rgEl?.value&&!document.getElementById('e-og')?.value){el.innerHTML='';return}
+  const dg=rg-og, dn=rn-on_;
+  const grossOk=Math.abs(dg)<=0.2, netOk=Math.abs(dn)<=0.1;
+  const allOk=grossOk&&netOk&&!_toggles.purity&&_toggles.passcard&&_toggles.tally;
+  const msgs=[];
+  if(!grossOk)msgs.push(`Gross diff: ${dg>=0?'+':''}${dg.toFixed(3)}gm ⚠`);
+  if(!netOk)msgs.push(`Net diff: ${dn>=0?'+':''}${dn.toFixed(3)}gm ⚠`);
+  if(_toggles.purity)msgs.push('Purity mismatch');
+  if(!_toggles.passcard)msgs.push('No Pass Card');
+  if(!_toggles.tally)msgs.push('Not tallying');
   const discAlert=document.getElementById('disc-alert');
   const saveBtn=document.getElementById('save-next-btn');
   if(!allOk){
-    let msgs=[];
-    if(!grossOk)msgs.push(`Gross: ${dg>=0?'+':''}${dg.toFixed(3)}gm`);
-    if(!netOk)msgs.push(`Net: ${dn>=0?'+':''}${dn.toFixed(3)}gm`);
-    if(pBad)msgs.push('Purity mismatch');
-    if(pcBad)msgs.push('No Pass Card');
-    if(tBad)msgs.push('Not tallying');
-    el.className='diff-result diff-flag';
-    el.textContent='⚠ DISCREPANCY: '+msgs.join(' | ');
+    el.innerHTML=`<div class="diff-box diff-bad">⚠️ ${msgs.join(' · ')}</div>`;
     if(discAlert)discAlert.style.display='flex';
-    if(saveBtn)saveBtn.style.background='var(--red)';
-  }else{
-    el.className='diff-result diff-ok';
-    el.textContent=dg===0&&dn===0?'✓ Perfect match — No weight difference':`✓ Within tolerance | Gross: ${dg>=0?'+':''}${dg.toFixed(3)}gm | Net: ${dn>=0?'+':''}${dn.toFixed(3)}gm`;
+    if(saveBtn){saveBtn.style.background='var(--red)';saveBtn.textContent='⚠️ Save & Next'}
+  } else {
+    el.innerHTML=`<div class="diff-box diff-ok">✅ ${dg===0&&dn===0?'Perfect match — No weight difference':`Within tolerance | G:${dg>=0?'+':''}${dg.toFixed(3)} N:${dn>=0?'+':''}${dn.toFixed(3)}`}</div>`;
     if(discAlert)discAlert.style.display='none';
-    if(saveBtn)saveBtn.style.background='var(--green)';
+    if(saveBtn){saveBtn.style.background='var(--green)';saveBtn.textContent='💾 Save & Next'}
   }
-}
-
-// ── AUTO-COPY ──
-function toggleACopy(){
-  _autocopy=!_autocopy;
-  const tog=document.getElementById('ac-tog');
-  const knob=document.getElementById('ac-knob');
-  const lbl=document.getElementById('ac-lbl');
-  if(tog)tog.style.background=_autocopy?'var(--green)':'var(--gray)';
-  if(knob)knob.style.right=_autocopy?'3px':'21px';
-  if(lbl){lbl.style.color=_autocopy?'var(--green)':'var(--gray)';lbl.textContent=_autocopy?'ON':'OFF'}
 }
 
 function tryAutoCopy(){
-  if(!_autocopy)return;
+  if(!_autoCopy)return;
   const og=document.getElementById('e-og')?.value.trim();
   const on_=document.getElementById('e-on')?.value.trim();
   if(!og||!on_)return;
-  const rg=document.getElementById('e-rg');
-  const rn=document.getElementById('e-rn');
-  const ind=document.getElementById('copied-indicator');
-  const ogN=parseFloat(og),onN=parseFloat(on_);
-  if(!rg.value.trim()||(parseFloat(rg.value)===ogN)){rg.value=ogN.toFixed(3);rg.style.background='#F0FAF5'}
-  if(!rn.value.trim()||(parseFloat(rn.value)===onN)){rn.value=onN.toFixed(3);rn.style.background='#F0FAF5'}
-  if(ind)ind.style.display='block';
-  calcWtDiff();
+  const rgEl=document.getElementById('e-rg');
+  const rnEl=document.getElementById('e-rn');
+  const badge=document.getElementById('copied-badge');
+  const ogN=parseFloat(og), onN=parseFloat(on_);
+  if(!rgEl.value.trim()||(parseFloat(rgEl.value)===ogN)){rgEl.value=ogN.toFixed(3);rgEl.style.background='#F0FAF5'}
+  if(!rnEl.value.trim()||(parseFloat(rnEl.value)===onN)){rnEl.value=onN.toFixed(3);rnEl.style.background='#F0FAF5'}
+  if(badge)badge.style.display='block';
+  calcDiff();
 }
 
-function manualCopyWt(){
+function manualCopy(){
   const og=document.getElementById('e-og')?.value.trim();
   const on_=document.getElementById('e-on')?.value.trim();
-  if(!og&&!on_){alert('Enter sanction weights first.');return}
-  const rg=document.getElementById('e-rg');
-  const rn=document.getElementById('e-rn');
-  const ind=document.getElementById('copied-indicator');
-  if(og){rg.value=parseFloat(og).toFixed(3);rg.style.background='#F0FAF5'}
-  if(on_){rn.value=parseFloat(on_).toFixed(3);rn.style.background='#F0FAF5'}
-  if(ind)ind.style.display='block';
-  calcWtDiff();
+  if(!og&&!on_){alert('Enter sanction weights first');return}
+  const rgEl=document.getElementById('e-rg'), rnEl=document.getElementById('e-rn');
+  const badge=document.getElementById('copied-badge');
+  if(og){rgEl.value=parseFloat(og).toFixed(3);rgEl.style.background='#F0FAF5'}
+  if(on_){rnEl.value=parseFloat(on_).toFixed(3);rnEl.style.background='#F0FAF5'}
+  if(badge)badge.style.display='block';
+  calcDiff();
 }
 
-function clearACTint(id){const el=document.getElementById(id);if(el)el.style.background=''}
+function clearTint(id){const el=document.getElementById(id);if(el)el.style.background=''}
 
-// ── TOGGLES ──
-function setToggle(type,val){
-  _toggles[type]=val;
-  const map={purity:['p'],passcard:['pc'],tally:['t']};
-  const [p]=map[type];
-  const y=document.getElementById(p+'-yes');
-  const n=document.getElementById(p+'-no');
-  if(y){y.classList.toggle('active',val==='yes')}
-  if(n){n.classList.toggle('active',val==='no')}
-  if(type==='purity'){
-    const dr=document.getElementById('purity-detail-row');
-    if(dr)dr.style.display=val==='yes'?'block':'none';
-  }
-  calcWtDiff();
-}
-
-// ── SAVE ENTRY ──
 async function saveEntry(goNext){
-  const a=_brAccounts[_brIdx];
+  const a=_brAccs[_brIdx];
   const og=document.getElementById('e-og')?.value;
   const on_=document.getElementById('e-on')?.value;
   const rg=document.getElementById('e-rg')?.value;
   const rn=document.getElementById('e-rn')?.value;
-  a.og=og!==''?parseFloat(og):'';
-  a.on_=on_!==''?parseFloat(on_):'';
-  a.rg=rg!==''?parseFloat(rg):'';
-  a.rn=rn!==''?parseFloat(rn):'';
-  a.purity=_toggles.purity==='yes'?'YES':'NO';
+  a.og=og!==''?parseFloat(og):''; a.on_=on_!==''?parseFloat(on_):'';
+  a.rg=rg!==''?parseFloat(rg):''; a.rn=rn!==''?parseFloat(rn):'';
+  a.purity=_toggles.purity?'YES':'NO';
   a.purity_detail=document.getElementById('e-pdetail')?.value||'';
-  a.passcard=_toggles.passcard==='yes'?'YES':'NO';
-  a.tally=_toggles.tally==='yes'?'YES':'NO';
+  a.passcard=_toggles.passcard?'YES':'NO';
+  a.tally=_toggles.tally?'YES':'NO';
   a.appraiser2=document.getElementById('e-app')?.value||'';
   a.action=document.getElementById('e-action')?.value||'';
   const dg=a.rg!==''&&a.og!==''?Math.abs(a.rg-a.og):0;
   const dn=a.rn!==''&&a.on_!==''?Math.abs(a.rn-a.on_):0;
   const disc=dg>0.2||dn>0.1||a.purity==='YES'||a.passcard==='NO'||a.tally==='NO';
   if(a.rg!==''||a.rn!=='') a.status=disc?'flagged':'ok';
-  _brAccounts[_brIdx]=a;
-  // Save to Firebase/local
+  _brAccs[_brIdx]=a;
   await dbSet('gl-accounts/'+CUR.branchCode+'/'+a.sl,a);
-  const msg=document.getElementById('save-msg');
-  if(msg){msg.className='alert '+(disc?'alert-warn':'alert-ok');msg.style.display='flex';msg.textContent=disc?'⚠ Saved — Discrepancy flagged':'✓ Saved successfully'}
-  if(goNext&&_brIdx<_brAccounts.length-1) setTimeout(()=>renderEntryFor(_brIdx+1),600);
+  updatePendingBadge();
+  // Toast feedback
+  showToast(disc?'⚠️ Saved — Discrepancy flagged':'✅ Saved successfully', disc?'warn':'ok');
+  if(goNext&&_brIdx<_brAccs.length-1){_brIdx++;renderEntryForm();}
 }
 
-async function markNotVerified(){
+async function markNV(){
   const reason=prompt('Reason for not conducting reappraisal:');
   if(!reason)return;
-  const a=_brAccounts[_brIdx];
-  a.status='not_verified';a.not_verified_reason=reason;
-  _brAccounts[_brIdx]=a;
+  const a=_brAccs[_brIdx];
+  a.status='not_verified'; a.not_verified_reason=reason;
+  _brAccs[_brIdx]=a;
   await dbSet('gl-accounts/'+CUR.branchCode+'/'+a.sl,a);
-  if(_brIdx<_brAccounts.length-1)renderEntryFor(_brIdx+1);
+  updatePendingBadge();
+  if(_brIdx<_brAccs.length-1){_brIdx++;renderEntryForm();}
 }
 
-// ── BRANCH REPORT ──
+// ═══════════════════════════════════════════════════════════
+//  BRANCH — REPORT
+// ═══════════════════════════════════════════════════════════
 async function renderBranchReport(){
-  const el=document.getElementById('b-report');if(!el)return;
-  el.innerHTML=`<div class="loading">Loading report data...</div>`;
-  const accsObj=await dbGet('gl-accounts/'+CUR.branchCode)||{};
-  const accs=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
+  const el=document.getElementById('pg-report');
   const branches=await dbGet('gl-branches')||{};
   const b=branches[CUR.branchCode]||{name:CUR.branchName,code:CUR.branchCode};
-  const pending=accs.filter(a=>a.status==='pending').length;
+  const pend=_brAccs.filter(a=>a.status==='pending').length;
   el.innerHTML=`
-    <div class="section-header"><h2>Annexure II Report</h2>
-      <div class="row">
-        <button class="btn btn-primary" onclick="doPrint('branch')">🖨️ Print (Landscape A4)</button>
-      </div>
-    </div>
-    ${pending>0?`<div class="alert alert-warn no-print">⚠ ${pending} account(s) still pending. Complete entry before submitting to RO Kadapa.</div>`:''}
-    <div class="card no-print">
-      <div class="card-title">Signatory Details</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
-        <div><div class="form-group"><label>Branch Official Name</label><input id="sg-bo-name" placeholder="Name"></div>
-          <div class="form-group"><label>PF No.</label><input id="sg-bo-pf" placeholder="PF No."></div></div>
-        <div><div class="form-group"><label>Branch in Charge Name</label><input id="sg-bic-name" placeholder="Name"></div>
-          <div class="form-group"><label>PF No.</label><input id="sg-bic-pf" placeholder="PF No."></div></div>
-        <div><div class="form-group"><label>Gold Appraiser Name</label><input id="sg-app-name" placeholder="Name" value="${b.appraiser||''}"></div></div>
-        <div><div class="form-group"><label>Nominated Officer Name</label><input id="sg-nom-name" placeholder="Name"></div>
-          <div class="form-group"><label>PF No.</label><input id="sg-nom-pf" placeholder="PF No."></div></div>
-      </div>
-      <button class="btn btn-primary" style="margin-top:10px" onclick="refreshBranchReport()">🔄 Refresh Report Preview</button>
-    </div>
-    <div id="annexure-container"></div>`;
-  buildAnnexureII(b,accs,'annexure-container');
+    ${pend>0?`<div class="alert alert-warn">⚠️ ${pend} account(s) still pending. Complete entry before submitting to RO Kadapa.</div>`:''}
+    <div class="sec-head">Signatory Details</div>
+    <div class="card"><div class="card-body">
+      <div class="f-group"><label>Branch Official Name</label><input id="sg-bo-name" placeholder="Name"></div>
+      <div class="f-group"><label>Branch Official PF No.</label><input id="sg-bo-pf" placeholder="PF No."></div>
+      <div class="f-group"><label>Branch in Charge Name</label><input id="sg-bic-name" placeholder="Name"></div>
+      <div class="f-group"><label>Branch in Charge PF No.</label><input id="sg-bic-pf" placeholder="PF No."></div>
+      <div class="f-group"><label>Nominated Officer Name</label><input id="sg-nom-name" placeholder="Name"></div>
+      <div class="f-group"><label>Nominated Officer PF No.</label><input id="sg-nom-pf" placeholder="PF No."></div>
+    </div></div>
+    <button class="btn btn-red" onclick="printBranchReport()" style="margin-bottom:12px">🖨️ Print / Save PDF (Landscape A4)</button>
+    <div id="branch-rpt-preview"></div>`;
+  buildAnnexurePreview(b,_brAccs,'branch-rpt-preview');
 }
 
-async function refreshBranchReport(){
-  const accsObj=await dbGet('gl-accounts/'+CUR.branchCode)||{};
-  const accs=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
+async function printBranchReport(){
   const branches=await dbGet('gl-branches')||{};
   const b=branches[CUR.branchCode]||{};
-  buildAnnexureII(b,accs,'annexure-container');
+  doPrint(b,_brAccs);
 }
 
-// ═══════════════════════════════════════════════
-//  ANNEXURE II BUILDER
-// ═══════════════════════════════════════════════
-function buildAnnexureII(b,accs,containerId){
-  const qDates={
+async function printReport(){
+  const code=document.getElementById('rpt-br')?.value;if(!code)return;
+  const branches=await dbGet('gl-branches')||{};
+  const b=branches[code];
+  const accsObj=await dbGet('gl-accounts/'+code)||{};
+  const accs=Object.values(accsObj).sort((a,b)=>a.sl-b.sl);
+  doPrint(b,accs);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ANNEXURE II BUILDER + PRINT
+// ═══════════════════════════════════════════════════════════
+function getSig(id){return document.getElementById(id)?.value||''}
+
+function buildAnnexurePreview(b,accs,containerId){
+  const html=buildAnnexureHTML(b,accs);
+  const wrap=document.getElementById(containerId);if(!wrap)return;
+  wrap.innerHTML=`
+    <div class="sec-head">Annexure II Preview</div>
+    <div class="alert alert-info">ℹ️ Rotate phone to landscape for better preview. Tap Print to save as PDF.</div>
+    <div class="report-scroll">
+      <div class="ann-tbl-min">${html}</div>
+    </div>`;
+}
+
+function buildAnnexureHTML(b,accs){
+  const getSigV=id=>document.getElementById(id)?.value||'';
+  const qd={
     'January-March 2026':['01-01-2026','31-03-2026'],
     'April-June 2026':['01-04-2026','30-06-2026'],
     'July-September 2026':['01-07-2026','30-09-2026'],
     'October-December 2026':['01-10-2026','31-12-2026'],
     'January-March 2027':['01-01-2027','31-03-2027'],
   };
-  const qd=qDates[b.quarter]||['__________','__________'];
+  const dates=qd[b.quarter||'']||['__________','__________'];
   const total=accs.length;
-  const verified=accs.filter(a=>a.status==='ok'||a.status==='flagged').length;
+  const verif=accs.filter(a=>a.status==='ok'||a.status==='flagged').length;
   const nv=accs.filter(a=>a.status==='not_verified');
-  const fmtDate=d=>{if(!d)return'—';if(d.includes('-')&&d.length===10){const p=d.split('-');if(p[0].length===4)return p[2]+'-'+p[1]+'-'+p[0];return d;}return d};
-  const getSig=id=>{const el=document.getElementById(id);return el?el.value:''};
-
+  const c=v=>v||'&nbsp;';
+  const fmtDate=d=>{if(!d)return'—';if(d.includes('-')&&d.length===10){const p=d.split('-');return p[0].length===4?p[2]+'-'+p[1]+'-'+p[0]:d}return d};
   const tbody=accs.map(a=>{
-    const og=a.og!==''&&a.og!==null&&a.og!==undefined?parseFloat(a.og):'';
-    const on_=a.on_!==''&&a.on_!==null&&a.on_!==undefined?parseFloat(a.on_):'';
-    const rg=a.rg!==''&&a.rg!==null&&a.rg!==undefined?parseFloat(a.rg):'';
-    const rn=a.rn!==''&&a.rn!==null&&a.rn!==undefined?parseFloat(a.rn):'';
-    const dg=rg!==''&&og!==''?rg-og:null;
-    const dn=rn!==''&&on_!==''?rn-on_:null;
-    const dgS=dg!==null&&Math.abs(dg)>0.2?'color:#B91C1C;font-weight:bold':'';
-    const dnS=dn!==null&&Math.abs(dn)>0.1?'color:#B91C1C;font-weight:bold':'';
-    const c=v=>v!==''&&v!==null&&v!==undefined?v:'&nbsp;';
-    return `<tr class="${a.status==='flagged'?'ann-flag-row':''}">
-      <td>${a.sl}</td>
-      <td class="left" style="font-size:6.5pt;word-break:break-all">${c(a.acno)}</td>
-      <td class="left" style="font-size:7pt">${c(a.bname)}</td>
-      <td>${og!==''?og.toFixed(3):'&nbsp;'}</td>
-      <td>${on_!==''?on_.toFixed(3):'&nbsp;'}</td>
-      <td>${rg!==''?rg.toFixed(3):'&nbsp;'}</td>
-      <td>${rn!==''?rn.toFixed(3):'&nbsp;'}</td>
-      <td style="${dgS}">${dg!==null?dg.toFixed(3):'&nbsp;'}</td>
-      <td style="${dnS}">${dn!==null?dn.toFixed(3):'&nbsp;'}</td>
+    const og=a.og!==''&&a.og!=null?parseFloat(a.og):null;
+    const on_=a.on_!==''&&a.on_!=null?parseFloat(a.on_):null;
+    const rg=a.rg!==''&&a.rg!=null?parseFloat(a.rg):null;
+    const rn=a.rn!==''&&a.rn!=null?parseFloat(a.rn):null;
+    const dg=rg!=null&&og!=null?rg-og:null;
+    const dn=rn!=null&&on_!=null?rn-on_:null;
+    const dgS=dg!=null&&Math.abs(dg)>0.2?'color:#B91C1C;font-weight:bold':'';
+    const dnS=dn!=null&&Math.abs(dn)>0.1?'color:#B91C1C;font-weight:bold':'';
+    return `<tr ${a.status==='flagged'?'class="ann-flag"':''}>
+      <td>${a.sl}</td><td class="l" style="font-size:6pt;word-break:break-all">${c(a.acno)}</td>
+      <td class="l" style="font-size:7pt">${c(a.bname)}</td>
+      <td>${og!=null?og.toFixed(3):'&nbsp;'}</td>
+      <td>${on_!=null?on_.toFixed(3):'&nbsp;'}</td>
+      <td>${rg!=null?rg.toFixed(3):'&nbsp;'}</td>
+      <td>${rn!=null?rn.toFixed(3):'&nbsp;'}</td>
+      <td style="${dgS}">${dg!=null?dg.toFixed(3):'&nbsp;'}</td>
+      <td style="${dnS}">${dn!=null?dn.toFixed(3):'&nbsp;'}</td>
       <td>${a.purity==='YES'?'Yes'+(a.purity_detail?' — '+a.purity_detail:''):'No'}</td>
-      <td>${a.passcard||'YES'}</td>
-      <td>${a.tally||'YES'}</td>
-      <td class="left" style="font-size:6.5pt">${c(a.appraiser2)||c(getSig('sg-app-name'))||c(b.appraiser)}</td>
-      <td class="left" style="font-size:6.5pt">${c(a.action)}</td>
+      <td>${a.passcard||'YES'}</td><td>${a.tally||'YES'}</td>
+      <td class="l" style="font-size:6pt">${c(a.appraiser2||b.appraiser)}</td>
+      <td class="l" style="font-size:6pt">${c(a.action)}</td>
     </tr>`;
   }).join('');
-
-  const nvTable=nv.length?`<table class="ann-main-table" style="margin-top:4px">
-    <thead><tr>
-      <th style="width:5%">Sl. No.</th>
-      <th>Loan account no</th>
-      <th>Name of the Borrower</th>
-      <th>Reason for not conducting Surprise reappraisal</th>
-    </tr></thead>
-    <tbody>${nv.map((a,i)=>`<tr><td>${i+1}</td><td class="left">${a.acno||''}</td><td class="left">${a.bname||''}</td><td class="left">${a.not_verified_reason||''}</td></tr>`).join('')}</tbody>
-  </table>`:`<p style="font-family:'Times New Roman',serif;font-size:10pt;margin:4px 0 0 16px">&nbsp;&nbsp;&nbsp;&nbsp;NIL</p>`;
-
-  document.getElementById(containerId).innerHTML=`
-  <div class="annexure-wrap">
+  const nvRows=nv.map((a,i)=>`<tr><td>${i+1}</td><td class="l">${a.acno||''}</td><td class="l">${a.bname||''}</td><td class="l">${a.not_verified_reason||''}</td></tr>`).join('');
+  return `<div class="ann-wrap">
     <p class="ann-title">Annexure II</p>
-    <p style="font-size:11pt;font-weight:bold;text-align:center;font-family:'Times New Roman',serif;margin-bottom:8px">
+    <p style="font-size:9pt;font-weight:bold;text-align:center;font-family:'Times New Roman',serif;margin-bottom:6px">
       FORMAT OF CONFIRMATION TO BE SUBMITTED BY BRANCHES TO REGIONAL OFFICE WITH REGARD TO SURPRISE REAPPRAISAL OF GOLD LOANS
     </p>
-    <table class="ann-outer-table" style="margin-bottom:0">
-      <tr>
-        <td style="width:50%;font-size:10pt"><b>From Branch:</b> ${b.name||'—'}&nbsp;&nbsp;&nbsp;<b>BR Code:</b> ${b.code||'—'}</td>
-        <td style="width:50%;font-size:10pt"><b>To</b> Gold loan vertical:<br><b>Regional Office:</b> ${b.ro||'Kadapa'}</td>
-      </tr>
-      <tr>
-        <td style="font-size:10pt"><b>Ref. No.:</b> ${b.refno||'—'}</td>
-        <td style="font-size:10pt"><b>Date:</b> ${fmtDate(b.date)||'—'}</td>
-      </tr>
+    <table class="ann-outer">
+      <tr><td style="width:50%"><b>From Branch:</b> ${b.name||'—'} &nbsp; <b>BR Code:</b> ${b.code||'—'}</td>
+          <td><b>To</b> Gold loan vertical:<br><b>Regional Office:</b> ${b.ro||'Kadapa'}</td></tr>
+      <tr><td><b>Ref. No.:</b> ${b.refno||'—'}</td><td><b>Date:</b> ${fmtDate(b.date)||'—'}</td></tr>
     </table>
-    <p class="ann-sub" style="font-family:'Times New Roman',serif;margin:8px 0;font-size:11pt">
-      SUB: SURPRISE REAPPRAISAL OF GOLD LOANS – CONFIRMATION FOR THE ${(b.quarter||'—').toUpperCase()} QUARTER
-    </p>
-    <table class="ann-outer-table" style="margin-bottom:0">
-      <tr><td style="width:40%;font-size:10pt"><b>Name of the Jewel Appraiser Conducting Verification</b></td>
-          <td style="font-size:10pt">${b.appraiser||getSig('sg-app-name')||'—'}</td></tr>
-      <tr><td style="font-size:10pt"><b>Mobile Number</b></td><td style="font-size:10pt">${b.mobile||'—'}</td></tr>
-      <tr><td style="font-size:10pt"><b>Name of the Parent Branch</b></td><td style="font-size:10pt">${b.parentBranch||'—'}</td></tr>
+    <p class="ann-sub">SUB: SURPRISE REAPPRAISAL OF GOLD LOANS – CONFIRMATION FOR THE ${(b.quarter||'—').toUpperCase()} QUARTER</p>
+    <table class="ann-outer">
+      <tr><td style="width:40%"><b>Name of the Jewel Appraiser Conducting Verification</b></td><td>${b.appraiser||'—'}</td></tr>
+      <tr><td><b>Mobile Number</b></td><td>${b.mobile||'—'}</td></tr>
+      <tr><td><b>Name of the Parent Branch</b></td><td>${b.parent_branch||b.parentBranch||'—'}</td></tr>
     </table>
-    <p style="font-family:'Times New Roman',serif;font-size:10.5pt;margin:8px 0 4px;font-weight:bold">
-      Particulars of Jewel Loan Portfolio at ${b.name||'—'} Branch
-    </p>
-    <table class="ann-outer-table" style="margin-bottom:8px">
-      <tr>
-        <td style="font-size:10pt;font-weight:bold;text-align:center">Number of Gold Loans Sanctioned from ${qd[0]} to ${qd[1]}</td>
-        <td style="font-size:10pt;font-weight:bold;text-align:center">Number of Loans Verified</td>
-      </tr>
-      <tr>
-        <td style="font-size:11pt;text-align:center;font-weight:bold">${total}</td>
-        <td style="font-size:11pt;text-align:center;font-weight:bold">${verified}</td>
-      </tr>
+    <p style="font-family:'Times New Roman',serif;font-size:9.5pt;font-weight:bold;margin:6px 0 3px">
+      Particulars of Jewel Loan Portfolio at ${b.name||'—'} Branch</p>
+    <table class="ann-outer" style="margin-bottom:6px">
+      <tr><td style="text-align:center;font-weight:bold">Number of Gold Loans Sanctioned from ${dates[0]} to ${dates[1]}</td>
+          <td style="text-align:center;font-weight:bold">Number of Loans Verified</td></tr>
+      <tr><td style="text-align:center;font-size:12pt;font-weight:bold">${total}</td>
+          <td style="text-align:center;font-size:12pt;font-weight:bold">${verif}</td></tr>
     </table>
-    <div class="ann-table-wrap" style="overflow-x:auto;margin-top:6px">
-    <table class="ann-main-table" style="table-layout:fixed;width:100%">
-      <colgroup>
-        <col style="width:3%"><col style="width:11%"><col style="width:11%">
-        <col style="width:5%"><col style="width:5%"><col style="width:5%"><col style="width:5%">
-        <col style="width:5%"><col style="width:5%"><col style="width:8%">
-        <col style="width:5%"><col style="width:9%"><col style="width:9%"><col style="width:10%">
-      </colgroup>
+    <table class="ann-tbl">
       <thead>
         <tr>
-          <th rowspan="2">Sl. No</th>
-          <th rowspan="2">Loan account No.</th>
-          <th rowspan="2">Name of the Borrower</th>
-          <th colspan="2">Details of Appraisal at the time of sanction</th>
-          <th colspan="2">Details of Reappraisal</th>
-          <th rowspan="2">Diff in Gross Wt (gm)</th>
-          <th rowspan="2">Diff in Net Wt (gm)</th>
-          <th rowspan="2">Diff in purity (Yes/No) If Yes, details</th>
-          <th rowspan="2">Pass Card inside Cover (Yes/No)</th>
-          <th rowspan="2">No./Type/Wt in Loan App &amp; Pass Card tallying (Yes/No)</th>
-          <th rowspan="2">Name of Jewel Appraiser conducted reappraisal</th>
-          <th rowspan="2">Action taken by branch in case of discrepancy</th>
+          <th rowspan="2" style="width:3%">Sl. No</th>
+          <th rowspan="2" style="width:11%">Loan account No.</th>
+          <th rowspan="2" style="width:11%">Name of the Borrower</th>
+          <th colspan="2">Appraisal at sanction</th>
+          <th colspan="2">Reappraisal</th>
+          <th rowspan="2" style="width:5%">Diff Gross (gm)</th>
+          <th rowspan="2" style="width:5%">Diff Net (gm)</th>
+          <th rowspan="2" style="width:8%">Purity diff (Y/N)</th>
+          <th rowspan="2" style="width:5%">Pass Card (Y/N)</th>
+          <th rowspan="2" style="width:9%">Tally (Y/N)</th>
+          <th rowspan="2" style="width:9%">Appraiser Name</th>
+          <th rowspan="2">Action Taken</th>
         </tr>
         <tr>
-          <th>Gross wt (gm)</th><th>Net wt (gm)</th>
-          <th>Gross wt (gm)</th><th>Net wt (gm)</th>
+          <th style="width:5%">Gross wt</th><th style="width:5%">Net wt</th>
+          <th style="width:5%">Gross wt</th><th style="width:5%">Net wt</th>
         </tr>
       </thead>
       <tbody>${tbody}</tbody>
     </table>
-    </div>
-    <p style="font-family:'Times New Roman',serif;font-size:10pt;margin:10px 0 4px">
-      &bull;&nbsp; We confirm having conducted reappraisal of all Gold Loan accounts as per the list provided vide your email dated _________________ Except for the following;
-    </p>
-    ${nvTable}
-    <p style="font-family:'Times New Roman',serif;font-size:10pt;margin:10px 0">
-      &bull;&nbsp; The due date for stamping of Electronic Bullion Weighing Scale supplied to our branch is <b>${fmtDate(b.scale)||'______________'}</b>. We note to obtain Periodical stamping/verification of the same from Department of Legal Metrology in time.
-    </p>
-    <table class="sig-table">
+    <p style="font-family:'Times New Roman',serif;font-size:9pt;margin:8px 0 4px">
+      &bull; We confirm having conducted reappraisal of all Gold Loan accounts as per the list provided vide your email dated _________________ Except for the following;</p>
+    ${nv.length===0?'<p style="font-family:\'Times New Roman\',serif;font-size:9pt;margin-left:16px">NIL</p>':`
+    <table class="ann-tbl" style="margin-bottom:6px">
+      <thead><tr><th style="width:5%">Sl.</th><th>Loan account no</th><th>Name of Borrower</th><th>Reason</th></tr></thead>
+      <tbody>${nvRows}</tbody>
+    </table>`}
+    <p style="font-family:'Times New Roman',serif;font-size:9pt;margin:8px 0">
+      &bull; The due date for stamping of Electronic Bullion Weighing Scale supplied to our branch is <b>${fmtDate(b.scale)||'______________'}</b>. We note to obtain Periodical stamping/verification of the same from Department of Legal Metrology in time.</p>
+    <table class="sig-tbl">
       <tr>
         <td><div class="sig-line"></div><p><b>Signature of Branch Official</b></p>
-          <p style="margin-top:6px">NAME: ${getSig('sg-bo-name')||'_________________________'}</p>
-          <p>PF NO: ${getSig('sg-bo-pf')||'_________________'}</p></td>
+          <p>NAME: ${getSigV('sg-bo-name')||'_____________________'}</p>
+          <p>PF NO: ${getSigV('sg-bo-pf')||'_______________'}</p></td>
         <td><div class="sig-line"></div><p><b>Signature of Branch in Charge</b></p>
-          <p style="margin-top:6px">NAME: ${getSig('sg-bic-name')||'_________________________'}</p>
-          <p>PF NO: ${getSig('sg-bic-pf')||'_________________'}</p></td>
-        <td><div class="sig-line"></div><p><b>Signature of the Gold Appraiser</b></p>
-          <p style="font-size:8pt;color:#555">(Attended Reappraisal)</p>
-          <p style="margin-top:6px">Name: ${getSig('sg-app-name')||b.appraiser||'_______________'}</p></td>
+          <p>NAME: ${getSigV('sg-bic-name')||'_____________________'}</p>
+          <p>PF NO: ${getSigV('sg-bic-pf')||'_______________'}</p></td>
+        <td><div class="sig-line"></div><p><b>Signature of Gold Appraiser</b></p>
+          <p style="font-size:7pt">(Attended Reappraisal)</p>
+          <p>Name: ${b.appraiser||'_______________'}</p></td>
         <td><div class="sig-line"></div><p><b>Signature of Nominated Officer</b></p>
-          <p style="margin-top:6px">NAME: ${getSig('sg-nom-name')||'_________________________'}</p>
-          <p>PF NO: ${getSig('sg-nom-pf')||'_________________'}</p></td>
+          <p>NAME: ${getSigV('sg-nom-name')||'_____________________'}</p>
+          <p>PF NO: ${getSigV('sg-nom-pf')||'_______________'}</p></td>
       </tr>
     </table>
   </div>`;
 }
 
-// ═══════════════════════════════════════════════
-//  UTILITY
-// ═══════════════════════════════════════════════
+function doPrint(b,accs){
+  const html=buildAnnexureHTML(b,accs);
+  const pw=document.getElementById('ann-print-wrap');
+  pw.innerHTML=html;
+  // Flatten overflow
+  pw.querySelectorAll('*').forEach(el=>{el.style.overflow='visible';el.style.maxHeight='none'});
+  const tbl=pw.querySelector('.ann-tbl');
+  if(tbl){tbl.style.tableLayout='fixed';tbl.style.width='100%';tbl.style.minWidth='unset'}
+  pw.querySelectorAll('.ann-tbl td,.ann-tbl th').forEach(td=>{
+    td.style.fontSize='6.5pt';td.style.padding='2px 3px';
+    if(!td.innerHTML.trim())td.innerHTML='\u00a0';
+  });
+  setTimeout(()=>{window.print();setTimeout(()=>pw.innerHTML='',4000);},400);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════════
 function showMsg(id,msg,type){
   const el=document.getElementById(id);if(!el)return;
   const cls=type==='ok'?'alert-ok':type==='warn'?'alert-warn':type==='err'?'alert-err':'alert-info';
   el.innerHTML=`<div class="alert ${cls}">${msg}</div>`;
 }
 
-// ═══════════════════════════════════════════════
-//  PRINT — dedicated container approach
-//  Copies annexure HTML into a separate always-
-//  visible div so @media print always finds it
-// ═══════════════════════════════════════════════
-function doPrint(source){
-  var printDiv = document.getElementById('annexure-print-container');
-
-  // Find the annexure content
-  var annexureEl = null;
-  if(source === 'admin'){
-    var sr = document.getElementById('screen-report');
-    if(sr) annexureEl = sr.querySelector('.annexure-wrap');
-  } else {
-    var ac = document.getElementById('annexure-container');
-    if(ac) annexureEl = ac.querySelector('.annexure-wrap');
-  }
-
-  if(!annexureEl){
-    alert('Please load the report first, then click Print.');
-    return;
-  }
-
-  // Clone into print-only container
-  printDiv.innerHTML = '';
-  printDiv.appendChild(annexureEl.cloneNode(true));
-
-  // Flatten ALL overflow so no rows are clipped
-  var all = printDiv.querySelectorAll('*');
-  for(var i=0;i<all.length;i++){
-    all[i].style.overflow = 'visible';
-    all[i].style.maxHeight = 'none';
-    if(all[i].tagName !== 'TD' && all[i].tagName !== 'TR'){
-      all[i].style.height = 'auto';
-    }
-  }
-
-  // Fix table
-  var tbl = printDiv.querySelector('.ann-main-table');
-  if(tbl){ tbl.style.tableLayout='fixed'; tbl.style.width='100%'; tbl.style.fontSize='6.5pt'; }
-
-  // thead repeat
-  var thead = printDiv.querySelector('.ann-main-table thead');
-  if(thead) thead.style.display = 'table-header-group';
-
-  // Fill empty cells with non-breaking space so rows have height
-  var tds = printDiv.querySelectorAll('.ann-main-table td');
-  for(var j=0;j<tds.length;j++){
-    if(!tds[j].innerHTML.trim()) tds[j].innerHTML = '\u00a0';
-    tds[j].style.fontSize = '6.5pt';
-    tds[j].style.padding = '2px 3px';
-    tds[j].style.minHeight = '14px';
-  }
-
-  // Brief delay for layout, then print
-  setTimeout(function(){
-    window.print();
-    // Clean up after dialog
-    setTimeout(function(){ printDiv.innerHTML = ''; }, 4000);
-  }, 500);
+let _toastTimer;
+function showToast(msg,type='ok'){
+  let t=document.getElementById('gl-toast');
+  if(!t){t=document.createElement('div');t.id='gl-toast';
+    Object.assign(t.style,{position:'fixed',bottom:'calc(70px + 16px + env(safe-area-inset-bottom,0px))',
+      left:'50%',transform:'translateX(-50%)',padding:'10px 18px',borderRadius:'20px',
+      fontWeight:'600',fontSize:'12px',zIndex:'999',whiteSpace:'nowrap',
+      boxShadow:'0 4px 16px rgba(0,0,0,.2)',transition:'opacity .3s'});
+    document.body.appendChild(t);}
+  t.textContent=msg;
+  t.style.background=type==='ok'?'var(--green)':type==='warn'?'var(--amber)':'var(--red)';
+  t.style.color='white'; t.style.opacity='1';
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>t.style.opacity='0',2500);
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════════════
-window.onload=async function(){
-  // Auto-connect Firebase — config is hardcoded
-  initFirebase(_FIREBASE_CFG);
-  // Check for saved session
-  const sess=JSON.parse(localStorage.getItem('gl-session')||'null');
-  if(sess&&sess.uid){
-    CUR=sess;
-    document.getElementById('login-screen').style.display='none';
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('load',function(){
+  initFB();
+  if(CUR&&CUR.uid){
+    document.getElementById('login-page').style.display='none';
     showApp();
   }
-
-  // ── Orientation change handler ──
-  // On mobile: when user opens Report tab, show rotate hint
-  // When landscape: hide hint, table scrolls horizontally for easy viewing
-  function handleOrientation(){
-    var isLandscape = window.innerWidth > window.innerHeight;
-    var hint = document.getElementById('rotate-hint');
-    var onReport = document.querySelector('.nav-tab.active');
-    var tabLabel = onReport ? onReport.textContent : '';
-    var isReportTab = tabLabel.includes('Report') || tabLabel.includes('📄');
-    if(hint){
-      hint.style.display = (!isLandscape && isReportTab && window.innerWidth < 768) ? 'block' : 'none';
-    }
-  }
-  window.addEventListener('orientationchange', handleOrientation);
-  window.addEventListener('resize', handleOrientation);
-
-  // ── Add tbl-wrap to all tables for mobile horizontal scroll ──
-  document.querySelectorAll('.card table.tbl').forEach(function(t){
-    if(!t.parentElement.classList.contains('tbl-wrap')){
-      var w = document.createElement('div');
-      w.className = 'tbl-wrap';
-      t.parentNode.insertBefore(w, t);
-      w.appendChild(t);
-    }
-  });
-};
+  // Prevent bounce scroll on iOS
+  document.body.addEventListener('touchmove',function(e){
+    if(e.target.closest('#app-body'))return;
+    e.preventDefault();
+  },{passive:false});
+});
 </script>
 </body>
 </html>
